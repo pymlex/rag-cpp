@@ -62,7 +62,7 @@ if (-not $artifact) {
 }
 
 $destRoot = Join-Path $Root $artifact.Name
-$destPython = Join-Path $Root "python" $artifact.Name
+$destPython = Join-Path (Join-Path $Root "python") $artifact.Name
 $sitePackages = & $PythonExe -c "import site; print(site.getsitepackages()[0])"
 $destSite = Join-Path $sitePackages $artifact.Name
 

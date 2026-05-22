@@ -13,9 +13,10 @@ if (-not $artifact) {
 }
 
 $sitePackages = & $py -c "import site; print(site.getsitepackages()[0])"
+$pythonDir = Join-Path $Root "python"
 $targets = @(
     (Join-Path $Root $artifact.Name),
-    (Join-Path $Root "python" $artifact.Name),
+    (Join-Path $pythonDir $artifact.Name),
     (Join-Path $sitePackages $artifact.Name)
 )
 foreach ($dest in $targets) {
