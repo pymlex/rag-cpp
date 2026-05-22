@@ -10,6 +10,7 @@ from config.settings import (
     EMBEDDING_DIM,
     HNSW_FILE,
     INDEX_SUBDIR,
+    META_DB,
     TEXT_EXTENSIONS,
 )
 from python.bm25_index import Bm25Index
