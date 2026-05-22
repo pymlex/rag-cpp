@@ -9,7 +9,11 @@ from config.settings import (
 )
 
 
+_TOKENIZER_MAX_LENGTH = 1024
+
 _tokenizer = AutoTokenizer.from_pretrained(EMBEDDING_MODEL_ID)
+_tokenizer.model_max_length = _TOKENIZER_MAX_LENGTH
+_tokenizer.clean_up_tokenization_spaces = False
 
 
 def split_text_tokens(text: str, chunk_tokens: int, overlap_tokens: int) -> list[str]:
