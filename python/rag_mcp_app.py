@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from config.settings import FINAL_TOP_K
 from python.corpus_paths import get_corpus_root
 from python.index_manager import IndexManager
 from python.rag_pipeline import RagPipeline
@@ -32,7 +33,7 @@ def rag_query(query: str, use_hyde: bool = True) -> dict:
 
 
 @mcp.tool()
-def rag_search_chunks(query: str, top_k: int = 6) -> list[dict]:
+def rag_search_chunks(query: str, top_k: int = FINAL_TOP_K) -> list[dict]:
     from python.embeddings_client import EmbeddingsClient
     from python.hybrid_search import HybridSearcher
     from python.hyde import expand_query

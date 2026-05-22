@@ -5,6 +5,7 @@ import numpy as np
 
 from config.settings import (
     BM25_FILE,
+    CHUNK_INDEX_FINGERPRINT,
     CHUNK_TOKEN_OVERLAP,
     CHUNK_TOKEN_SIZE,
     EMBEDDING_DIM,
@@ -48,6 +49,14 @@ class IndexManager:
 
     def sync(self) -> dict[str, int]:
         print("sync scan", flush=True)
+        if self.meta.get_index_fingerprint() != CHUNK_INDEX_FINGERPRINT:
+            self.meta.clear_index()
+            self.meta.set_index_fingerprint(CHUNK_INDEX_FINGERPRINT)
+            hnsw_path = self.index_dir / HNSW_FILE
+            if hnsw_path.exists():
+                hnsw_path.unlink()
+            self.vector_index = NativeVectorIndex(hnsw_path)
+            self.vector_id_to_chunk = {}
         discovered = {
             str(p.relative_to(self.corpus_root)): p
             for p in iter_text_files(self.corpus_root, TEXT_EXTENSIONS)

@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from transformers import AutoTokenizer
@@ -11,6 +12,7 @@ from config.settings import (
 
 EMBED_MAX_TOKENS = 1024
 _ENCODE_CAP = 10_000_000
+_HEADING_SPLIT = re.compile(r"(?=^#{1,4}\s)", re.MULTILINE)
 
 _tokenizer = AutoTokenizer.from_pretrained(EMBEDDING_MODEL_ID)
 _tokenizer.model_max_length = EMBED_MAX_TOKENS
@@ -41,11 +43,22 @@ def split_text_tokens(text: str, chunk_tokens: int, overlap_tokens: int) -> list
     return chunks
 
 
+def split_markdown_sections(text: str) -> list[str]:
+    parts = _HEADING_SPLIT.split(text)
+    sections = [part.strip() for part in parts if part.strip()]
+    if len(sections) <= 1:
+        return [text]
+    return sections
+
+
 def read_text_file(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
 def chunk_file(path: Path, chunk_tokens: int, overlap_tokens: int) -> list[tuple[str, int]]:
     text = read_text_file(path)
-    parts = split_text_tokens(text, chunk_tokens, overlap_tokens)
+    sections = split_markdown_sections(text)
+    parts: list[str] = []
+    for section in sections:
+        parts.extend(split_text_tokens(section, chunk_tokens, overlap_tokens))
     return [(part, idx) for idx, part in enumerate(parts)]

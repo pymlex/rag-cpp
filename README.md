@@ -19,7 +19,7 @@ Repository: [pymlex/rag-cpp](https://github.com/pymlex/rag-cpp)
 | HyDE | Original user query plus one LLM paraphrase before embedding |
 | Zveno API | `openai/gpt-oss-120b` via OpenAI-compatible HTTP |
 
-Chunking uses `500` tokens per chunk and `100` token overlap (same tokenizer family as the embedding model).
+Chunking uses `320` tokens per chunk and `80` token overlap, with splits at Markdown headings (`#`–`####`) before token windows (same tokenizer family as the embedding model). Changing chunk settings triggers a full re-index on the next sync.
 
 ## Prerequisites
 
@@ -204,7 +204,7 @@ $$
 s(c) = 0.65 \cdot s_v(c) + 0.35 \cdot s_b(c)
 $$
 
-Top chunks are passed to the LLM with file path and chunk index.
+Hybrid search merges vector and BM25 ranks with weighted RRF, adds a lexical overlap rerank on chunk text, and keeps at most two chunks per canonical file path. Retrieval uses `RETRIEVAL_TOP_K = 16`; the LLM context uses `FINAL_TOP_K = 8` chunks with file path and chunk index.
 
 ## Benchmark pipeline
 
@@ -238,6 +238,10 @@ Metrics written to `benchmarks/results/<timestamp>/metrics.json`:
 | `retrieval_pass_rate` | Share of cases where `source_file` appears in hybrid top-8 |
 | `answer_pass_rate` | Share of cases where the RAG answer contains at least half of `must_contain` phrases |
 | `combined_pass_rate` | Fraction passing both checks |
+| `answer_strict_pass_rate` | All `must_contain` phrases present in the answer |
+| `answer_grounded_rate` | Answer is not the fixed not-found template |
+
+Retrieval matching uses canonical file keys (`[DA-1] …` equals `DA-1 …`).
 
 Each run also refreshes committed figures under `benchmarks/reports/` for the README below.
 

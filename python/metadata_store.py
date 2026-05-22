@@ -50,6 +50,14 @@ class MetadataStore:
             )
             """
         )
+        self.conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS index_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+            """
+        )
         columns = {row[1] for row in self.conn.execute("PRAGMA table_info(chunks)").fetchall()}
         if "vector_blob" not in columns:
             self.conn.execute("ALTER TABLE chunks ADD COLUMN vector_blob BLOB")
@@ -152,6 +160,27 @@ class MetadataStore:
     def indexed_file_paths(self) -> set[str]:
         rows = self.conn.execute("SELECT DISTINCT file_path FROM chunks").fetchall()
         return {r[0] for r in rows}
+
+    def get_index_fingerprint(self) -> str | None:
+        row = self.conn.execute(
+            "SELECT value FROM index_meta WHERE key = 'chunk_fingerprint'"
+        ).fetchone()
+        return row[0] if row else None
+
+    def set_index_fingerprint(self, value: str) -> None:
+        self.conn.execute(
+            """
+            INSERT INTO index_meta (key, value) VALUES ('chunk_fingerprint', ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+            """,
+            (value,),
+        )
+        self.conn.commit()
+
+    def clear_index(self) -> None:
+        self.conn.execute("DELETE FROM chunks")
+        self.conn.execute("DELETE FROM files")
+        self.conn.commit()
 
     def close(self) -> None:
         self.conn.close()
