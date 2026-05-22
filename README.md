@@ -1,6 +1,8 @@
 # C++ RAG for Windows
 
-Local retrieval stack for scientific and engineering text on Windows 10: C++ HNSW (`float32`, cosine), hybrid BM25 + vector search, HyDE, Zveno LLM, Gradio, and MCP tools for Cursor.
+Local retrieval stack for scientific and engineering text on Windows 10: C++ HNSW (`float32`, cosine), hybrid BM25 + vector search, HyDE, Zveno LLM, Gradio, and MCP tools.
+
+<img width="1849" height="909" alt="image" src="https://github.com/user-attachments/assets/7d73f866-beaa-4dcc-a89b-061cf742ac77" />
 
 ## Overview
 
