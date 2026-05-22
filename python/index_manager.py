@@ -103,8 +103,9 @@ class IndexManager:
         count = 0
         for (text, chunk_index), vec in zip(chunks, vectors):
             chunk_id = self._chunk_id(rel_path, chunk_index)
-            vector_id = self.vector_index.add(vec)
-            blob = np.asarray(vec, dtype=np.float32).tobytes()
+            vec_c = np.ascontiguousarray(vec, dtype=np.float32)
+            vector_id = self.vector_index.add(vec_c)
+            blob = vec_c.tobytes()
             record = ChunkRecord(
                 chunk_id=chunk_id,
                 file_path=rel_path,
