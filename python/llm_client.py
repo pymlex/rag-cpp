@@ -11,7 +11,7 @@ class ZvenoClient:
         api_key = os.environ["ZVENOAI_API_KEY"]
         base_url = os.getenv("ZVENO_BASE_URL", ZVENO_BASE_URL)
         self.model = os.getenv("ZVENO_MODEL", ZVENO_MODEL)
-        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.client = OpenAI(api_key=api_key, base_url=base_url, timeout=300.0)
 
     def chat(
         self,

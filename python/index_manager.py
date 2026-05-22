@@ -84,16 +84,20 @@ class IndexManager:
         self.vector_index = NativeVectorIndex(hnsw_path)
         records = self.meta.list_chunks_with_vectors()
         for record in records:
-            vec = np.frombuffer(record.vector_blob, dtype=np.float32).reshape(EMBEDDING_DIM)
-            vector_id = self.vector_index.add(vec)
+            vec = np.frombuffer(record.vector_blob, dtype=np.float32).copy()
+            vec = vec.reshape(EMBEDDING_DIM)
+            vec_c = np.ascontiguousarray(vec, dtype=np.float32)
+            vector_id = self.vector_index.add(vec_c)
             record.vector_id = vector_id
             self.meta.upsert_chunk(record)
 
     def _index_file(self, rel_path: str, path: Path, digest: str) -> int:
         created, modified = file_times(path)
         self.meta.set_file_hash(rel_path, digest, created, modified)
+        print(f"index file {rel_path}")
         chunks = chunk_file(path, CHUNK_TOKEN_SIZE, CHUNK_TOKEN_OVERLAP)
         texts = [c[0] for c in chunks]
+        print(f"chunks {len(texts)}")
         vectors = self.embedder.embed(texts)
         now = datetime.utcnow().isoformat()
         count = 0
