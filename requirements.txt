@@ -1,0 +1,13 @@
+numpy
+requests
+openai
+python-dotenv
+gradio
+mcp
+rank-bm25
+matplotlib
+py-spy
+pybind11
+tau2-bench
+transformers
+sentencepiece

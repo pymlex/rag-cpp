@@ -1,0 +1,41 @@
+@startuml
+title RAG MCP Local Architecture
+
+actor User
+node "Windows 10" {
+  component "Gradio UI" as Gradio
+  component "MCP Server" as MCP
+  package "Python Layer" {
+    component "RAG Pipeline" as RAG
+    component "HyDE + LLM Client" as HyDE
+    component "Hybrid Search" as Hybrid
+    component "BM25 Index" as BM25
+    component "Index Manager" as IDX
+    component "Metadata SQLite" as Meta
+    component "Embeddings Client" as EmbC
+  }
+  component "ragdb_native (C++ HNSW DLL)" as Native
+  database "Local Index Folder" as Store
+  component "Embeddings Inference Server" as EmbSrv
+  cloud "Zveno API" as Zveno
+}
+
+User --> Gradio
+User --> MCP
+Gradio --> RAG
+MCP --> RAG
+RAG --> HyDE
+HyDE --> Zveno
+RAG --> Hybrid
+Hybrid --> Native
+Hybrid --> BM25
+RAG --> IDX
+IDX --> Meta
+IDX --> Native
+IDX --> EmbC
+EmbC --> EmbSrv
+IDX --> Store
+Native --> Store
+Meta --> Store
+BM25 --> Store
+@enduml

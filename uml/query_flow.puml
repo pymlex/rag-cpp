@@ -1,0 +1,31 @@
+@startuml
+title Query Flow
+
+actor User
+participant "Gradio/MCP" as UI
+participant "IndexManager" as IDX
+participant "HyDE+Zveno" as LLM
+participant "Embeddings Server" as EMB
+participant "Hybrid Search" as HS
+participant "HNSW C++" as HNSW
+participant "BM25" as BM25
+database "SQLite+Index" as DB
+
+User -> UI: query + corpus path
+UI -> IDX: sync on startup
+IDX -> DB: diff files, update chunks
+IDX -> EMB: embed new chunks
+IDX -> HNSW: add/remove vectors
+IDX -> BM25: rebuild lexical index
+
+UI -> LLM: HyDE expand query
+LLM --> UI: scientific query text
+UI -> EMB: embed query
+EMB --> UI: query vector
+UI -> HS: hybrid search
+HS -> HNSW: vector top-k
+HS -> BM25: lexical top-k
+HS --> UI: merged chunks
+UI -> LLM: answer with context
+LLM --> User: answer or not-found message
+@enduml

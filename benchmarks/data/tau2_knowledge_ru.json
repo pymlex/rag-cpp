@@ -1,0 +1,20 @@
+[
+  {
+    "query": "как настроить overlap для чанков",
+    "expected_chunk_ids": [],
+    "expected_keywords": ["overlap", "чанк"],
+    "domain": "knowledge"
+  },
+  {
+    "query": "где хранится hnsw индекс",
+    "expected_chunk_ids": [],
+    "expected_keywords": ["hnsw", ".rag_index"],
+    "domain": "knowledge"
+  },
+  {
+    "query": "какой api у zveno",
+    "expected_chunk_ids": [],
+    "expected_keywords": ["zveno", "chat/completions"],
+    "domain": "knowledge"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "rag-local": {
+      "command": "C:\\path\\to\\rag_mcp_local\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "C:\\path\\to\\rag_mcp_local\\python",
+      "env": {
+        "RAG_CORPUS_PATH": "C:\\path\\to\\corpus",
+        "ZVENOAI_API_KEY": "from_dotenv"
+      }
+    }
+  }
+}

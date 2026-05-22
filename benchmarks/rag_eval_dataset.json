@@ -1,0 +1,17 @@
+[
+  {
+    "query": "как настроить параметры HNSW",
+    "expected_file_contains": "hnsw",
+    "must_contain_any": ["M", "ef", "HNSW"]
+  },
+  {
+    "query": "гибридный поиск BM25 и векторный",
+    "expected_file_contains": "bm25",
+    "must_contain_any": ["BM25", "вектор", "гибрид"]
+  },
+  {
+    "query": "HyDE преобразование запроса",
+    "expected_file_contains": "hyde",
+    "must_contain_any": ["HyDE", "запрос", "поиск"]
+  }
+]
