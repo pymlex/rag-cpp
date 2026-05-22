@@ -17,6 +17,8 @@ public:
 
     void set_level(Id id, Level lvl);
 
+    bool has_layer(Id id, Level layer) const;
+
     const std::vector<Id>& neighbors(Id id, Level layer) const;
 
     std::vector<Id>& neighbors_mut(Id id, Level layer);

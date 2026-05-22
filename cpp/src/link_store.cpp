@@ -21,7 +21,15 @@ void LinkStore::set_level(Id id, Level lvl) {
     node_links.resize(static_cast<std::size_t>(lvl) + 1);
 }
 
+bool LinkStore::has_layer(Id id, Level layer) const {
+    return layer <= level(id);
+}
+
 const std::vector<Id>& LinkStore::neighbors(Id id, Level layer) const {
+    static const std::vector<Id> kEmpty;
+    if (!has_layer(id, layer)) {
+        return kEmpty;
+    }
     return links_[static_cast<std::size_t>(id)][static_cast<std::size_t>(layer)];
 }
 

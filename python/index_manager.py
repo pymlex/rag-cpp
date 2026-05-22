@@ -47,6 +47,7 @@ class IndexManager:
                 self.vector_id_to_chunk[int(row.vector_id)] = row.chunk_id
 
     def sync(self) -> dict[str, int]:
+        print("sync scan", flush=True)
         discovered = {
             str(p.relative_to(self.corpus_root)): p
             for p in iter_text_files(self.corpus_root, TEXT_EXTENSIONS)

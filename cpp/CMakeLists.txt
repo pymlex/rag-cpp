@@ -17,7 +17,18 @@ if(NOT pybind11_FOUND)
     find_package(pybind11 CONFIG REQUIRED)
 endif()
 
-file(GLOB RAGDB_SOURCES CONFIGURE_DEPENDS src/*.cpp)
+set(RAGDB_SOURCES
+    src/candidate_queue.cpp
+    src/distance.cpp
+    src/hnsw_index.cpp
+    src/hnsw_insert.cpp
+    src/hnsw_search.cpp
+    src/link_store.cpp
+    src/neighbor_select.cpp
+    src/persistence.cpp
+    src/vector_store.cpp
+    src/visited_set.cpp
+)
 
 add_library(ragdb_core STATIC ${RAGDB_SOURCES})
 target_include_directories(ragdb_core PUBLIC include)

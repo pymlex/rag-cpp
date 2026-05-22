@@ -29,6 +29,9 @@ PYBIND11_MODULE(ragdb_native, m) {
             if (buf.ndim != 1) {
                 throw std::runtime_error("expected 1-D float vector");
             }
+            if (static_cast<std::size_t>(buf.size) != idx.params().dim) {
+                throw std::runtime_error("vector dimension mismatch");
+            }
             return idx.add(static_cast<float*>(buf.ptr));
         })
         .def("clear", &ragdb::HnswIndex::clear)

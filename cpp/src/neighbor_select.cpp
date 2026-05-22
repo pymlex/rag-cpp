@@ -47,6 +47,9 @@ void connect_bidirectional(
     Id src,
     Id dst,
     Level layer) {
+    if (!links.has_layer(src, layer) || !links.has_layer(dst, layer)) {
+        return;
+    }
     auto& a = links.neighbors_mut(src, layer);
     if (std::find(a.begin(), a.end(), dst) == a.end()) {
         a.push_back(dst);
