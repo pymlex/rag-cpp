@@ -165,18 +165,18 @@ Copy `mcp_config.example.json` into your Cursor MCP settings and adjust paths.
   "mcpServers": {
     "rag-local": {
       "command": "C:\\path\\to\\rag-cpp\\.venv\\Scripts\\python.exe",
-      "args": ["C:\\path\\to\\rag-cpp\\python\\mcp_server.py"],
+      "args": ["C:\\path\\to\\rag-cpp\\mcp_server.py"],
       "env": {
-        "ZVENOAI_API_KEY": "your_key",
         "RAG_CORPUS_ROOT": "C:\\path\\to\\corpus",
-        "EMBEDDING_URL": "http://127.0.0.1:8000/"
+        "EMBEDDING_URL": "http://127.0.0.1:8000/",
+        "MINGW_DLL_DIR": "C:\\msys64\\ucrt64\\bin"
       }
     }
   }
 }
 ```
 
-`mcp_server.py` also loads `.env` from the repo root when present.
+Use the launcher `mcp_server.py` in the repo root, not `python\\mcp_server.py`. `ZVENOAI_API_KEY` is read from `.env` in the repo root; do not duplicate secrets in the MCP JSON.
 
 Tools:
 
@@ -189,7 +189,7 @@ Tools:
 Manual server start:
 
 ```powershell
-python python\mcp_server.py
+python mcp_server.py
 ```
 
 ## Index update semantics
