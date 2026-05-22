@@ -6,7 +6,6 @@ param(
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 $BuildDir = Join-Path $Root "cpp\build"
-$PythonDir = Join-Path $Root "python"
 
 if (-not $PythonExe) {
     $PythonExe = Join-Path $Root ".venv\Scripts\python.exe"
@@ -61,5 +60,17 @@ if (-not $artifact) {
 if (-not $artifact) {
     throw "ragdb_native module was not built"
 }
-Copy-Item $artifact.FullName -Destination (Join-Path $PythonDir $artifact.Name) -Force
-Write-Host "Copied native module to" (Join-Path $PythonDir $artifact.Name)
+
+$destRoot = Join-Path $Root $artifact.Name
+$destPython = Join-Path $Root "python" $artifact.Name
+$sitePackages = & $PythonExe -c "import site; print(site.getsitepackages()[0])"
+$destSite = Join-Path $sitePackages $artifact.Name
+
+Copy-Item $artifact.FullName -Destination $destRoot -Force
+Copy-Item $artifact.FullName -Destination $destPython -Force
+Copy-Item $artifact.FullName -Destination $destSite -Force
+
+Write-Host "Copied native module to:"
+Write-Host "  $destRoot"
+Write-Host "  $destPython"
+Write-Host "  $destSite"

@@ -293,7 +293,13 @@ Render with any PlantUML viewer for coursework figures.
 .\scripts\build_cpp.ps1
 ```
 
-The built `ragdb_native*.pyd` is copied into `python/`.
+The built `ragdb_native*.pyd` is copied into the repo root, `python/`, and `.venv\Lib\site-packages\`.
+
+If `ModuleNotFoundError: ragdb_native` appears after a successful build:
+
+```powershell
+.\scripts\install_native_module.ps1
+```
 
 ## Troubleshooting
 
