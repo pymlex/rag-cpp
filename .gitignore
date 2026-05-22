@@ -45,6 +45,7 @@ bm25_corpus.json
 
 benchmarks/results/
 benchmarks/datasets/
+benchmarks/last_qa_raw.txt
 profiling/results/
 
 *.zip
