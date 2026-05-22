@@ -1,37 +1,26 @@
-import os
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ROOT = Path(__file__).resolve().parents[1]
+from profiling.pyspy_common import (
+    ROOT,
+    apply_profile_corpus_override,
+    load_profile_env,
+    pyspy_record_prefix,
+    results_subdir,
+    runner_env,
+)
 
 
 def main() -> None:
-    corpus = os.environ.get("RAG_PROFILE_CORPUS", os.environ["RAG_CORPUS_ROOT"])
-    out_dir = ROOT / "profiling" / "results" / datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        "py-spy",
-        "record",
-        "-o",
-        str(out_dir / "index_sync.svg"),
-        "--format",
-        "speedscope",
-        "--",
-        sys.executable,
-        "-c",
-        (
-            f"import os; os.environ['RAG_CORPUS_ROOT']='{corpus}'; "
-            f"from python.index_manager import IndexManager; "
-            f"from pathlib import Path; "
-            f"m=IndexManager(Path(r'{corpus}')); m.sync(); m.close()"
-        ),
-    ]
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT)
-    subprocess.run(cmd, check=True, cwd=str(ROOT), env=env)
+    load_profile_env()
+    apply_profile_corpus_override()
+    out_dir = results_subdir()
+    cmd = pyspy_record_prefix(out_dir / "index_sync.svg")
+    cmd.extend(["--", sys.executable, str(ROOT / "profiling" / "profile_index_sync.py")])
+    subprocess.run(cmd, check=True, cwd=str(ROOT), env=runner_env())
 
 
 if __name__ == "__main__":

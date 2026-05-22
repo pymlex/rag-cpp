@@ -255,12 +255,11 @@ Uses the [τ²-bench](https://github.com/sierra-research/tau2-bench) CLI. Logs l
 ## Profiling with py-spy
 
 ```powershell
-$env:RAG_PROFILE_CORPUS = $env:RAG_CORPUS_ROOT
 python profiling\run_pyspy_index.py
 python profiling\run_pyspy_gradio.py
 ```
 
-Flame graphs are stored under `profiling/results/`.
+`RAG_CORPUS_ROOT` is read from `.env`. Optional `RAG_PROFILE_CORPUS` overrides the corpus path for index profiling only. On Windows, py-spy uses `--subprocesses` because the venv `python.exe` launcher spawns the real interpreter. Run the terminal as Administrator if py-spy still cannot attach. Flame graphs are stored under `profiling/results/`.
 
 ## Project layout
 

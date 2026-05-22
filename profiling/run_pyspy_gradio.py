@@ -1,31 +1,26 @@
 import os
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ROOT = Path(__file__).resolve().parents[1]
+from profiling.pyspy_common import (
+    ROOT,
+    load_profile_env,
+    pyspy_record_prefix,
+    results_subdir,
+    runner_env,
+)
 
 
 def main() -> None:
-    out_dir = ROOT / "profiling" / "results" / datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    out_dir.mkdir(parents=True, exist_ok=True)
+    load_profile_env()
+    out_dir = results_subdir()
     duration = os.getenv("PYSPY_DURATION", "30")
-    cmd = [
-        "py-spy",
-        "record",
-        "-o",
-        str(out_dir / "gradio.svg"),
-        "--format",
-        "speedscope",
-        "-d",
-        duration,
-        "--",
-        sys.executable,
-        str(ROOT / "gradio_app.py"),
-    ]
-    subprocess.run(cmd, check=True, cwd=str(ROOT))
+    cmd = pyspy_record_prefix(out_dir / "gradio.svg", duration=duration)
+    cmd.extend(["--", sys.executable, str(ROOT / "gradio_app.py")])
+    subprocess.run(cmd, check=True, cwd=str(ROOT), env=runner_env())
 
 
 if __name__ == "__main__":
