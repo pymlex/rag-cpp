@@ -24,7 +24,7 @@ Chunking uses `500` tokens per chunk and `100` token overlap (same tokenizer fam
 ## Prerequisites
 
 - Windows 10
-- Python 3.10 or newer
+- **Python 3.10 or newer for `.venv`** (the `mcp` package does not support 3.9)
 - `git`
 - `cmake` 3.20+
 - MinGW `gcc` / `g++` (detected by the build script) or MSVC toolchain
@@ -38,7 +38,21 @@ cd rag-cpp
 .\scripts\check_system.ps1
 ```
 
-Save the printed output if the C++ build fails later.
+Save the printed output if the C++ build fails later. The line `Python 3.10+ for venv` must point to an interpreter, not `NOT FOUND`.
+
+If `python --version` on PATH is 3.9 but Python 3.12 is installed, the install script still works: `scripts\resolve_python.ps1` picks `py -3.12` or `%LOCALAPPDATA%\Programs\Python\Python312\python.exe`.
+
+Manual override:
+
+```powershell
+.\scripts\install_all.ps1 -PythonExe "C:\Users\aleks\AppData\Local\Programs\Python\Python312\python.exe"
+```
+
+If a previous install created `.venv` with Python 3.9, delete it before reinstall:
+
+```powershell
+Remove-Item -Recurse -Force .venv
+```
 
 ## End-to-end installation
 
@@ -272,10 +286,21 @@ Render with any PlantUML viewer for coursework figures.
 ## Rebuild native module only
 
 ```powershell
+.\.venv\Scripts\Activate.ps1
 .\scripts\build_cpp.ps1
 ```
 
 The built `ragdb_native*.pyd` is copied into `python/`.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| `No matching distribution found for mcp` | PATH Python is 3.9. Remove `.venv`, install Python 3.12, rerun `install_all.ps1`. |
+| `pip uninstall` access denied | Fixed in install script: uses `python -m pip`, not `pip.exe`. |
+| `No module named pybind11` in CMake | Run `install_all.ps1` fully; build uses `.venv` Python, not system 3.12 without packages. |
+| `mingw32-make: No such file` | CMake configure failed first; read lines above `No rule to make target`. |
+| CMake picks wrong Python | Pass `-PythonExe` to `install_all.ps1` or delete `.venv`. |
 
 ## Daily run checklist
 

@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipCpp
+    [switch]$SkipCpp,
+    [string]$PythonExe = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,17 +9,34 @@ $Root = Split-Path -Parent $PSScriptRoot
 Write-Host "Step 1: system check"
 & (Join-Path $Root "scripts\check_system.ps1")
 
+if (-not $PythonExe) {
+    $PythonExe = & (Join-Path $Root "scripts\resolve_python.ps1")
+}
+Write-Host "Using Python:" $PythonExe
+& $PythonExe --version
+
 Write-Host "Step 2: python venv"
 $venv = Join-Path $Root ".venv"
-if (-not (Test-Path $venv)) {
-    python -m venv $venv
+$venvPy = Join-Path $venv "Scripts\python.exe"
+$recreate = $false
+if (Test-Path $venvPy) {
+    $ok = & $venvPy -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Removing .venv created with Python older than 3.10"
+        Remove-Item -Recurse -Force $venv
+        $recreate = $true
+    }
 }
+if (-not (Test-Path $venv)) {
+    & $PythonExe -m venv $venv
+}
+
 $py = Join-Path $venv "Scripts\python.exe"
-$pip = Join-Path $venv "Scripts\pip.exe"
 
 Write-Host "Step 3: pip dependencies"
-& $pip install --upgrade pip
-& $pip install -r (Join-Path $Root "requirements.txt")
+& $py -m pip install --upgrade pip setuptools wheel
+& $py -m pip install pybind11
+& $py -m pip install -r (Join-Path $Root "requirements.txt")
 
 Write-Host "Step 4: .env"
 $envExample = Join-Path $Root ".env.example"
@@ -30,7 +48,7 @@ if (-not (Test-Path $envFile)) {
 
 if (-not $SkipCpp) {
     Write-Host "Step 5: build C++ module (MinGW if gcc found)"
-    & (Join-Path $Root "scripts\build_cpp.ps1")
+    & (Join-Path $Root "scripts\build_cpp.ps1") -PythonExe $py
 }
 
 Write-Host "Set RAG_CORPUS_ROOT in .env to your single corpus folder before daily use."
@@ -40,9 +58,9 @@ $embDir = Join-Path $Root "third_party\embeddings-inference-server"
 if (-not (Test-Path $embDir)) {
     git clone https://github.com/pymlex/embeddings-inference-server.git $embDir
 }
-& $pip install -r (Join-Path $embDir "requirements.txt")
+& $py -m pip install -r (Join-Path $embDir "requirements.txt")
 
 Write-Host "Installation finished."
 Write-Host "Activate venv: .\.venv\Scripts\Activate.ps1"
-Write-Host "Start embeddings: set MODEL_DIR=mlsa-iai-msu-lab/sci-rus-tiny; python third_party\embeddings-inference-server\run_server.py"
-Write-Host "Start Gradio: python gradio_app.py"
+Write-Host "Embeddings: .\scripts\run_embeddings_local.ps1"
+Write-Host "Gradio: python gradio_app.py"
