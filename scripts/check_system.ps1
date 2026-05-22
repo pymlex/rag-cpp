@@ -8,7 +8,10 @@ Write-Host ""
 $resolveScript = Join-Path $PSScriptRoot "resolve_python.ps1"
 $py310 = $null
 if (Test-Path $resolveScript) {
-    $py310 = & $resolveScript 2>$null
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $py310 = & $resolveScript | Select-Object -First 1
+    $ErrorActionPreference = $prevEap
     if ($LASTEXITCODE -eq 0 -and $py310) {
         Write-Host "Python 3.10+ for venv:" $py310
         & $py310 --version

@@ -1,56 +1,79 @@
-$ErrorActionPreference = "Stop"
-
-function Test-PythonVersion {
+function Test-Python310Plus {
     param([string]$Exe)
-    if (-not (Test-Path $Exe)) {
+    if (-not (Test-Path -LiteralPath $Exe)) {
         return $false
     }
-    $code = @"
-import sys
-raise SystemExit(0 if sys.version_info >= (3, 10) else 1)
-"@
-    & $Exe -c $code
+    & $Exe -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)" 2>$null
     return $LASTEXITCODE -eq 0
 }
 
-$candidates = New-Object System.Collections.Generic.List[string]
+function Add-Candidate {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [hashtable]$Seen,
+        [string]$Path
+    )
+    if (-not $Path) {
+        return
+    }
+    $norm = $Path.Trim().Trim('"')
+    if (-not $norm.EndsWith("python.exe", [System.StringComparison]::OrdinalIgnoreCase)) {
+        return
+    }
+    if ($Seen.ContainsKey($norm)) {
+        return
+    }
+    $Seen[$norm] = $true
+    $List.Add($norm)
+}
 
-if (Get-Command py -ErrorAction SilentlyContinue) {
-    foreach ($tag in @("3.12", "3.11", "3.10")) {
-        $line = & py -$tag -c "import sys; print(sys.executable)" 2>$null
-        if ($LASTEXITCODE -eq 0 -and $line) {
-            $candidates.Add($line.Trim())
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+
+$candidates = New-Object System.Collections.Generic.List[string]
+$seen = @{}
+
+$pythonCmd = Get-Command python -ErrorAction SilentlyContinue
+if ($pythonCmd) {
+    Add-Candidate -List $candidates -Seen $seen -Path $pythonCmd.Source
+}
+
+$pyCmd = Get-Command py -ErrorAction SilentlyContinue
+if ($pyCmd) {
+    $defaultExe = & py -c "import sys; print(sys.executable)" 2>$null | Select-Object -Last 1
+    Add-Candidate -List $candidates -Seen $seen -Path $defaultExe
+
+    $pyList = & py -0p 2>$null
+    foreach ($row in $pyList) {
+        if ($row -match '(python\.exe)\s*$') {
+            $parts = $row -split '\s+'
+            Add-Candidate -List $candidates -Seen $seen -Path $parts[-1]
         }
     }
 }
 
-$roots = @(
-    "$env:LOCALAPPDATA\Programs\Python",
-    "$env:ProgramFiles\Python"
-)
-foreach ($root in $roots) {
+$versionDirs = @("Python312", "Python311", "Python310")
+foreach ($name in $versionDirs) {
+    $exe = Join-Path $env:LOCALAPPDATA "Programs\Python\$name\python.exe"
+    Add-Candidate -List $candidates -Seen $seen -Path $exe
+}
+
+foreach ($root in @("$env:LOCALAPPDATA\Programs\Python", "${env:ProgramFiles}\Python312", "${env:ProgramFiles}\Python311")) {
     if (-not (Test-Path $root)) {
         continue
     }
     Get-ChildItem -Path $root -Filter "python.exe" -Recurse -ErrorAction SilentlyContinue |
-        ForEach-Object { $candidates.Add($_.FullName) }
+        ForEach-Object { Add-Candidate -List $candidates -Seen $seen -Path $_.FullName }
 }
 
-if (Get-Command python -ErrorAction SilentlyContinue) {
-    $candidates.Add((Get-Command python).Source)
-}
+$ErrorActionPreference = $prevEap
 
-$seen = @{}
 foreach ($exe in $candidates) {
-    if ($seen.ContainsKey($exe)) {
-        continue
-    }
-    $seen[$exe] = $true
-    if (Test-PythonVersion $exe) {
+    if (Test-Python310Plus $exe) {
         Write-Output $exe
         exit 0
     }
 }
 
-Write-Error "Python 3.10+ is required. Install from https://www.python.org/downloads/ or run: py install 3.12"
+Write-Error "Python 3.10+ is required. Install from https://www.python.org/downloads/ and ensure python is on PATH."
 exit 1
