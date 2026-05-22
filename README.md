@@ -235,19 +235,17 @@ Metrics written to `benchmarks/results/<timestamp>/metrics.json`:
 
 | Metric | Definition |
 | --- | --- |
-| `retrieval_pass_rate` | Share of cases where `source_file` appears in hybrid top-8 |
+| `retrieval_pass_rate` | Share of cases where the canonical `source_file` appears in hybrid top-`RETRIEVAL_TOP_K` (16) |
 | `answer_pass_rate` | Share of cases where the RAG answer contains at least half of `must_contain` phrases |
-| `combined_pass_rate` | Fraction passing both checks |
+| `combined_pass_rate` | Fraction passing both retrieval and answer checks |
 | `answer_strict_pass_rate` | All `must_contain` phrases present in the answer |
 | `answer_grounded_rate` | Answer is not the fixed not-found template |
 
-Retrieval matching uses canonical file keys (`[DA-1] …` equals `DA-1 …`).
+Retrieval matching uses canonical file keys (`[DA-1] …` equals `DA-1 …`). Each eval run refreshes `benchmarks/reports/` for the figures below.
 
-Each run also refreshes committed figures under `benchmarks/reports/` for the README below.
+#### Baseline run — old stack (`20260522_184831`, 19 cases)
 
-#### Published run (`20260522_184831`, 19 cases)
-
-Aggregate metrics from `benchmarks/reports/metrics.json`:
+Settings: 500/100 token chunks without heading splits, min–max hybrid fusion, eval `top_k = 8`, substring path check in the evaluator.
 
 | Metric | Value |
 | --- | ---: |
@@ -255,17 +253,33 @@ Aggregate metrics from `benchmarks/reports/metrics.json`:
 | `answer_pass_rate` | 21.1% (4 / 19) |
 | `combined_pass_rate` | 5.3% (1 / 19) |
 
+Most retrieval failures were scoring artefacts (`DA-1 …` vs `[DA-1] …`), plus topical drift in top-8. Twelve answers returned the not-found template.
+
+#### Current run — updated stack (`20260522_195233`, 19 cases)
+
+Same QA set and corpus (`C:\Users\aleks\Downloads\rag-cpp`, user lecture tree). Settings: 320/80 token chunks with Markdown heading splits, weighted RRF + overlap rerank, `RETRIEVAL_TOP_K = 16`, `FINAL_TOP_K = 8`, canonical path matching in eval.
+
+| Metric | Value | Δ vs baseline |
+| --- | ---: | ---: |
+| `retrieval_pass_rate` | **100%** (19 / 19) | +89.5 pp |
+| `answer_pass_rate` | **73.7%** (14 / 19) | +52.6 pp |
+| `answer_grounded_rate` | **78.9%** (15 / 19) | — |
+| `answer_strict_pass_rate` | **15.8%** (3 / 19) | — |
+| `combined_pass_rate` | **73.7%** (14 / 19) | +68.4 pp |
+
 ![Per-case retrieval and answer pass](benchmarks/reports/pass_rates.png)
 
-The bar chart marks each QA pair: blue is retrieval (expected `source_file` in hybrid top-8), orange is answer (`must_contain` phrases in the model reply). Most bars stay at zero; only a few questions reach full retrieval or a correct answer.
+Blue bars are retrieval, orange bars are answer (`must_contain` half-match). After the update, every case retrieves the target lecture; fourteen also pass the answer check.
 
 ![Aggregate pass rates](benchmarks/reports/aggregate.png)
 
-**Retrieval (10.5%).** The dominant failure mode is a path mismatch between the QA set and indexed chunk metadata. Ground-truth paths look like `DA-1 Datasets and data mining.md`, while the index stores lecture files as `[DA-1] Datasets and data mining.md`. The evaluator checks substring containment, so semantically correct hits are scored as misses. A second issue is topical drift in hybrid top-8: broad ML course questions often surface unrelated lecture notes (Transformers, GenAI) instead of the DA/Pandas note that contains the answer.
+**Retrieval (100%).** The jump from 10.5% is not only “real” search quality: a large share of the old misses were false negatives from path strings. With canonical keys, every question now has the ground-truth file somewhere in the top-16 list. RRF reranking, smaller heading-aware chunks, and the wider pool reduced cases where the right lecture was missing entirely.
 
-**Answers (21.1%).** Four cases pass the phrase check. Three of them pass answer without retrieval (regression definition, sigmoid formula, MLP vs CNN): the generator still produces grounded text when nearby ML chunks appear in context, even though the strict file match fails. One case passes both checks (synthetic spectrum peak count) where retrieval returns the exact source document. In twelve cases the model returns the Russian not-found template because the retrieved context does not include the target passage.
+**Answers (73.7%).** Five cases still fail the loose phrase check. Two concern the synthetic spectrum note: the model answers correctly in prose but uses `N` / `1000` instead of the exact literals `N_SAMPLES = 2000` and `SEQ_LEN = 1000` required by `must_contain`. The other misses are paraphrases (pandas min/max, recommender pipeline stages, convolution wording) where retrieval succeeds but wording does not hit half of the benchmark phrases. Four answers still trigger the not-found template despite retrieval pass (`answer_grounded_rate` 78.9%).
 
-**End-to-end (5.3%).** Only one question satisfies retrieval and answer together. The pipeline is therefore limited by lexical–vector ranking and filename normalisation more than by the final LLM pass rate alone. Raising `top_k`, aligning path formats between `generated_qa.json` and the corpus tree, or adding a filename-normalisation step in `retrieval_hit` would shift the reported retrieval rate without changing the underlying index.
+**Strict phrases (15.8%).** Only three answers contain all `must_contain` strings verbatim. The benchmark heuristic remains strict; high `answer_pass_rate` with low `answer_strict_pass_rate` means the system answers substantively but not with the exact tokens the QA generator listed.
+
+**End-to-end (73.7%).** Compared with 5.3% baseline, the pipeline is usable for this corpus. Remaining gaps are mostly formulation and QA phrasing, not missing documents in retrieval.
 
 Reproduce or refresh the figures:
 
