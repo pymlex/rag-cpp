@@ -1,14 +1,16 @@
 import re
 
 
-_FILENAME_PREFIX = re.compile(r"^\[[^\]]+\]\s*")
+_BRACKET_PREFIX = re.compile(r"^\[([^\]]+)\]\s*(.+)$")
 
 
 def canonical_file_key(path: str) -> str:
     s = path.replace("\\", "/").strip().lower()
     if "/" in s:
         s = s.rsplit("/", 1)[-1]
-    s = _FILENAME_PREFIX.sub("", s)
+    match = _BRACKET_PREFIX.match(s)
+    if match:
+        s = f"{match.group(1)} {match.group(2)}"
     s = re.sub(r"\s+", " ", s)
     return s
 
