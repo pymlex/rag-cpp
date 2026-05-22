@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,22 @@ from config.settings import (
     HNSW_M,
     MAX_ELEMENTS,
 )
+
+
+def _register_dll_dirs() -> None:
+    root = Path(__file__).resolve().parents[1]
+    candidates = [
+        os.environ.get("MINGW_DLL_DIR", ""),
+        str(root / "bin"),
+        r"C:\msys64\ucrt64\bin",
+        r"C:\msys64\mingw64\bin",
+    ]
+    for entry in candidates:
+        if entry and Path(entry).is_dir():
+            os.add_dll_directory(entry)
+
+
+_register_dll_dirs()
 
 import ragdb_native
 

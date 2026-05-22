@@ -55,6 +55,7 @@ if (-not (Test-Path $envFile)) {
 if (-not $SkipCpp) {
     Write-Host "Step 5: build C++ module (MinGW if gcc found)"
     & (Join-Path $Root "scripts\build_cpp.ps1") -PythonExe $py
+    & (Join-Path $Root "scripts\install_native_module.ps1")
 }
 
 Write-Host "Set RAG_CORPUS_ROOT in .env to your single corpus folder before daily use."

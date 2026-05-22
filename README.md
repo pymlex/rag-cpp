@@ -311,6 +311,7 @@ If `ModuleNotFoundError: ragdb_native` appears after a successful build:
 | `mingw32-make: No such file` | CMake configure failed first; read lines above `No rule to make target`. |
 | `No matching distribution found for tau2-bench` | Package is not on PyPI; use `requirements-benchmark.txt` (git install). Core RAG works without it. |
 | `install TARGETS given no LIBRARY DESTINATION` | Fixed in current `CMakeLists.txt`; run `git pull` and `.\scripts\build_cpp.ps1`. |
+| `DLL load failed while importing ragdb_native` | MinGW runtime missing. Run `.\scripts\copy_mingw_runtime.ps1` and `.\scripts\install_native_module.ps1`, or set `MINGW_DLL_DIR` in `.env`. |
 | CMake picks wrong Python | Pass `-PythonExe` to `install_all.ps1` or delete `.venv`. |
 
 ## Daily run checklist
