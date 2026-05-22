@@ -41,7 +41,7 @@ def pyspy_record_prefix(out_file: Path, duration: str | None = None) -> list[str
         "-o",
         str(out_file),
         "--format",
-        "speedscope",
+        "flamegraph",
     ]
     if sys.platform == "win32":
         cmd.append("--subprocesses")
