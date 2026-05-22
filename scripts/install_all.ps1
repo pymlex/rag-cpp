@@ -38,6 +38,12 @@ Write-Host "Step 3: pip dependencies"
 & $py -m pip install pybind11
 & $py -m pip install -r (Join-Path $Root "requirements.txt")
 
+$benchReq = Join-Path $Root "requirements-benchmark.txt"
+if (Test-Path $benchReq) {
+    Write-Host "Step 3b: optional tau2 benchmark (from GitHub)"
+    & $py -m pip install -r $benchReq
+}
+
 Write-Host "Step 4: .env"
 $envExample = Join-Path $Root ".env.example"
 $envFile = Join-Path $Root ".env"

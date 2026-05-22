@@ -243,11 +243,14 @@ Plots: `pass_rates.png`, `aggregate.png`.
 
 ### 3. Optional τ²-bench
 
+Installed from GitHub during `install_all.ps1` (`requirements-benchmark.txt`). Manual install:
+
 ```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-benchmark.txt
 python benchmarks\run_tau2_rag.py
 ```
 
-Uses the external [τ²-bench](https://github.com/sierra-research/tau2-bench) CLI when installed. Logs land in `benchmarks/results/`.
+Uses the [τ²-bench](https://github.com/sierra-research/tau2-bench) CLI. Logs land in `benchmarks/results/`.
 
 ## Profiling with py-spy
 
@@ -300,6 +303,8 @@ The built `ragdb_native*.pyd` is copied into `python/`.
 | `pip uninstall` access denied | Fixed in install script: uses `python -m pip`, not `pip.exe`. |
 | `No module named pybind11` in CMake | Run `install_all.ps1` fully; build uses `.venv` Python, not system 3.12 without packages. |
 | `mingw32-make: No such file` | CMake configure failed first; read lines above `No rule to make target`. |
+| `No matching distribution found for tau2-bench` | Package is not on PyPI; use `requirements-benchmark.txt` (git install). Core RAG works without it. |
+| `install TARGETS given no LIBRARY DESTINATION` | Fixed in current `CMakeLists.txt`; run `git pull` and `.\scripts\build_cpp.ps1`. |
 | CMake picks wrong Python | Pass `-PythonExe` to `install_all.ps1` or delete `.venv`. |
 
 ## Daily run checklist

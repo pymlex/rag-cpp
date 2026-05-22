@@ -29,5 +29,3 @@ target_include_directories(ragdb_native PRIVATE include)
 if(WIN32)
     target_compile_definitions(ragdb_native PRIVATE NOMINMAX)
 endif()
-
-install(TARGETS ragdb_native LIBRARY RUNTIME DESTINATION rag_mcp_local/python)

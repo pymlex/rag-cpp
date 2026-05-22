@@ -10,4 +10,3 @@ py-spy>=0.3
 pybind11>=2.12
 transformers>=4.40
 sentencepiece>=0.2
-tau2-bench>=0.1
