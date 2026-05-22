@@ -4,11 +4,11 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from python.corpus_paths import get_corpus_root
-
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 from python.index_manager import IndexManager
 from python.rag_pipeline import RagPipeline
 
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 mcp = FastMCP("rag-local-mcp")
 

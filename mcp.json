@@ -1,12 +1,14 @@
 {
   "mcpServers": {
     "rag-local": {
-      "command": "C:\\path\\to\\rag_mcp_local\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "mcp_server.server"],
-      "cwd": "C:\\path\\to\\rag_mcp_local\\python",
+      "command": "C:\\Users\\aleks\\Downloads\\rag-cpp\\.venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\Users\\aleks\\Downloads\\rag-cpp\\mcp_server.py"
+      ],
       "env": {
-        "RAG_CORPUS_PATH": "C:\\path\\to\\corpus",
-        "ZVENOAI_API_KEY": "from_dotenv"
+        "RAG_CORPUS_ROOT": "C:\\Users\\aleks\\Desktop\\corpus",
+        "EMBEDDING_URL": "http://127.0.0.1:8000/",
+        "MINGW_DLL_DIR": "C:\\msys64\\ucrt64\\bin"
       }
     }
   }
