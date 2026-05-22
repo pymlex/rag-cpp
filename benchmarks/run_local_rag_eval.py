@@ -127,6 +127,12 @@ def main() -> None:
     plt.savefig(out_dir / "aggregate.png", dpi=160)
     plt.close()
 
+    report_dir = ROOT / "benchmarks" / "reports"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("metrics.json", "pass_rates.png", "aggregate.png"):
+        target = report_dir / name
+        target.write_bytes((out_dir / name).read_bytes())
+
 
 if __name__ == "__main__":
     main()

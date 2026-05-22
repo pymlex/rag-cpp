@@ -1,8 +1,8 @@
-# Local RAG with C++ HNSW and MCP
+# C++ RAG for Windows
+
+Local retrieval stack for scientific and engineering text on Windows 10: C++ HNSW (`float32`, cosine), hybrid BM25 + vector search, HyDE, Zveno LLM, Gradio, and MCP tools for Cursor.
 
 ## Overview
-
-This project is a Windows-first local retrieval stack for scientific and engineering text. A custom C++ HNSW index stores `float32` embeddings with cosine distance. Python handles chunking, hybrid retrieval, HyDE query expansion, Zveno LLM answering, Gradio UI, and an MCP server compatible with Cursor and other MCP clients.
 
 The embedding model is served locally through [embeddings-inference-server](https://github.com/pymlex/embeddings-inference-server) with `mlsa-iai-msu-lab/sci-rus-tiny` (312-dimensional vectors, max sequence length 1024 tokens).
 
@@ -239,7 +239,35 @@ Metrics written to `benchmarks/results/<timestamp>/metrics.json`:
 | `answer_pass_rate` | Share of cases where the RAG answer contains at least half of `must_contain` phrases |
 | `combined_pass_rate` | Fraction passing both checks |
 
-Plots: `pass_rates.png`, `aggregate.png`.
+Each run also refreshes committed figures under `benchmarks/reports/` for the README below.
+
+#### Published run (`20260522_184831`, 19 cases)
+
+Aggregate metrics from `benchmarks/reports/metrics.json`:
+
+| Metric | Value |
+| --- | ---: |
+| `retrieval_pass_rate` | 10.5% (2 / 19) |
+| `answer_pass_rate` | 21.1% (4 / 19) |
+| `combined_pass_rate` | 5.3% (1 / 19) |
+
+![Per-case retrieval and answer pass](benchmarks/reports/pass_rates.png)
+
+The bar chart marks each QA pair: blue is retrieval (expected `source_file` in hybrid top-8), orange is answer (`must_contain` phrases in the model reply). Most bars stay at zero; only a few questions reach full retrieval or a correct answer.
+
+![Aggregate pass rates](benchmarks/reports/aggregate.png)
+
+**Retrieval (10.5%).** The dominant failure mode is a path mismatch between the QA set and indexed chunk metadata. Ground-truth paths look like `DA-1 Datasets and data mining.md`, while the index stores lecture files as `[DA-1] Datasets and data mining.md`. The evaluator checks substring containment, so semantically correct hits are scored as misses. A second issue is topical drift in hybrid top-8: broad ML course questions often surface unrelated lecture notes (Transformers, GenAI) instead of the DA/Pandas note that contains the answer.
+
+**Answers (21.1%).** Four cases pass the phrase check. Three of them pass answer without retrieval (regression definition, sigmoid formula, MLP vs CNN): the generator still produces grounded text when nearby ML chunks appear in context, even though the strict file match fails. One case passes both checks (synthetic spectrum peak count) where retrieval returns the exact source document. In twelve cases the model returns the Russian not-found template because the retrieved context does not include the target passage.
+
+**End-to-end (5.3%).** Only one question satisfies retrieval and answer together. The pipeline is therefore limited by lexical–vector ranking and filename normalisation more than by the final LLM pass rate alone. Raising `top_k`, aligning path formats between `generated_qa.json` and the corpus tree, or adding a filename-normalisation step in `retrieval_hit` would shift the reported retrieval rate without changing the underlying index.
+
+Reproduce or refresh the figures:
+
+```powershell
+python benchmarks\run_local_rag_eval.py
+```
 
 ### 3. Optional τ²-bench
 
@@ -268,7 +296,7 @@ rag-cpp/
 ├── cpp/                 # HNSW implementation and CMake build
 ├── python/              # Index manager, RAG, MCP, hybrid search
 ├── config/settings.py   # Extensions, chunk sizes, hybrid weights
-├── benchmarks/          # QA generation and evaluation
+├── benchmarks/          # QA generation, evaluation, reports/ plots for README
 ├── profiling/           # py-spy runners
 ├── scripts/             # install, build, embedding server, benchmark
 ├── uml/                 # PlantUML architecture diagrams
@@ -278,12 +306,80 @@ rag-cpp/
 └── .env.example
 ```
 
-## UML
+## Architecture
 
-- `uml/architecture.puml` — component view
-- `uml/query_flow.puml` — request sequence
+Component view (source: `uml/architecture.puml`):
 
-Render with any PlantUML viewer for coursework figures.
+```mermaid
+flowchart TB
+  User([User])
+  subgraph win [Windows 10]
+    Gradio[Gradio UI]
+    MCP[MCP Server]
+    subgraph py [Python layer]
+      RAG[RAG Pipeline]
+      HyDE[HyDE + LLM Client]
+      Hybrid[Hybrid Search]
+      BM25[BM25 Index]
+      IDX[Index Manager]
+      Meta[(Metadata SQLite)]
+      EmbC[Embeddings Client]
+    end
+    Native[ragdb_native C++ HNSW]
+    Store[(Local index folder)]
+    EmbSrv[Embeddings Inference Server]
+  end
+  Zveno[Zveno API]
+  User --> Gradio
+  User --> MCP
+  Gradio --> RAG
+  MCP --> RAG
+  RAG --> HyDE
+  HyDE --> Zveno
+  RAG --> Hybrid
+  Hybrid --> Native
+  Hybrid --> BM25
+  RAG --> IDX
+  IDX --> Meta
+  IDX --> Native
+  IDX --> EmbC
+  EmbC --> EmbSrv
+  IDX --> Store
+  Native --> Store
+  BM25 --> Store
+```
+
+Query sequence (source: `uml/query_flow.puml`):
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant UI as Gradio / MCP
+  participant IDX as IndexManager
+  participant LLM as HyDE + Zveno
+  participant EMB as Embeddings Server
+  participant HS as Hybrid Search
+  participant HNSW as HNSW C++
+  participant BM25 as BM25
+  participant DB as SQLite + index files
+
+  User->>UI: query
+  UI->>IDX: sync
+  IDX->>DB: diff files, update chunks
+  IDX->>EMB: embed new chunks
+  IDX->>HNSW: add or rebuild vectors
+  IDX->>BM25: rebuild lexical index
+  UI->>LLM: HyDE expand query
+  LLM-->>UI: expanded text
+  UI->>EMB: embed query
+  EMB-->>UI: query vector
+  UI->>HS: hybrid search
+  HS->>HNSW: vector top-k
+  HS->>BM25: lexical top-k
+  HS-->>UI: merged chunks
+  UI->>LLM: answer with context
+  LLM-->>User: answer or not-found message
+```
 
 ## Rebuild native module only
 
