@@ -1,6 +1,5 @@
 import faulthandler
 import os
-import sys
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -13,49 +12,106 @@ from python.rag_pipeline import RagPipeline
 faulthandler.enable()
 load_dotenv()
 
+LATEX_DELIMITERS = [
+    {"left": "$$", "right": "$$", "display": True},
+    {"left": "\\[", "right": "\\]", "display": True},
+    {"left": "$", "right": "$", "display": False},
+    {"left": "\\(", "right": "\\)", "display": False},
+]
 
-def _format_sync(stats: dict) -> str:
-    root = get_corpus_root()
+
+def _sync_status(stats: dict) -> str:
     return (
-        f"corpus={root} added={stats['added']} updated={stats['updated']} "
-        f"removed={stats['removed']} rebuilt={stats['rebuilt']}"
+        f"добавлено {stats['added']}, обновлено {stats['updated']}, "
+        f"удалено {stats['removed']}, пересборка {stats['rebuilt']}"
     )
 
 
-def run_sync() -> str:
-    print("sync start", flush=True)
+def run_sync(progress: gr.Progress = gr.Progress()) -> str:
+    progress(0.05, desc="Сканирование корпуса")
     manager = IndexManager(get_corpus_root())
+    progress(0.2, desc="Чанки и эмбеддинги")
     stats = manager.sync()
     manager.close()
-    print("sync done", flush=True)
-    return _format_sync(stats)
+    progress(1.0, desc="Индекс обновлён")
+    return _sync_status(stats)
 
 
-def run_query(query: str, use_hyde: bool) -> tuple[str, str]:
-    print("query start", flush=True)
+def chat_respond(
+    user_message: str,
+    history: list,
+    use_hyde: bool,
+    progress: gr.Progress = gr.Progress(),
+):
+    if not user_message.strip():
+        yield history, ""
+        return
+    history = history + [[user_message, None]]
     manager = IndexManager(get_corpus_root())
     pipeline = RagPipeline(manager)
-    hyde_text, answer = pipeline.answer(query, use_hyde=use_hyde, sync_first=False)
+    answer = ""
+    for event in pipeline.answer_events(user_message, use_hyde=use_hyde, sync_first=False):
+        if len(event) == 2:
+            label, frac = event
+            progress(frac, desc=label)
+            yield history, label
+            continue
+        _, _, _, answer = event
     manager.close()
-    print("query done", flush=True)
-    return hyde_text, answer
+    history[-1][1] = answer
+    progress(1.0, desc="Готово")
+    yield history, ""
 
 
-with gr.Blocks(title="RAG MCP Local") as demo:
-    gr.Markdown(f"Корпус: `{os.environ.get('RAG_CORPUS_ROOT', '')}` (задаётся в `.env`)")
-    gr.Markdown(
-        "Сначала «Синхронизировать индекс» (может занять много времени). "
-        "Затем введите вопрос в «Запрос» и нажмите «Ответ»."
+def clear_chat() -> tuple[list, str]:
+    return [], ""
+
+
+corpus_label = os.environ.get("RAG_CORPUS_ROOT", "")
+
+with gr.Blocks(title="RAG", theme=gr.themes.Soft()) as demo:
+    with gr.Row():
+        corpus_path = gr.Textbox(
+            value=corpus_label,
+            label="Корпус",
+            interactive=False,
+            scale=4,
+        )
+        use_hyde = gr.Checkbox(label="HyDE", value=True, scale=0, min_width=80)
+    status_line = gr.Markdown("")
+    chatbot = gr.Chatbot(
+        height=560,
+        show_copy_button=True,
+        latex_delimiters=LATEX_DELIMITERS,
+        render_markdown=True,
+        bubble_full_width=False,
     )
-    sync_out = gr.Textbox(label="Синхронизация индекса", interactive=False)
-    btn_sync = gr.Button("Синхронизировать индекс")
-    query = gr.Textbox(label="Запрос", lines=3)
-    hyde = gr.Checkbox(label="HyDE", value=True)
-    hyde_out = gr.Textbox(label="Текст для векторизации", interactive=False)
-    answer = gr.Textbox(label="Ответ", lines=12, interactive=False)
-    btn_query = gr.Button("Ответ")
-    btn_sync.click(run_sync, None, sync_out)
-    btn_query.click(run_query, [query, hyde], [hyde_out, answer])
+    with gr.Row():
+        user_input = gr.Textbox(
+            placeholder="Сообщение",
+            show_label=False,
+            scale=8,
+            lines=2,
+        )
+        send_btn = gr.Button("Отправить", variant="primary", scale=1, min_width=120)
+    with gr.Row():
+        sync_btn = gr.Button("Обновить индекс", scale=1)
+        clear_btn = gr.Button("Очистить чат", scale=1)
+        sync_result = gr.Textbox(show_label=False, interactive=False, scale=3)
+
+    send_btn.click(
+        chat_respond,
+        [user_input, chatbot, use_hyde],
+        [chatbot, status_line],
+    ).then(lambda: "", None, user_input)
+    user_input.submit(
+        chat_respond,
+        [user_input, chatbot, use_hyde],
+        [chatbot, status_line],
+    ).then(lambda: "", None, user_input)
+    clear_btn.click(clear_chat, None, [chatbot, status_line])
+    sync_btn.click(run_sync, None, sync_result, show_progress="full")
+
 
 if __name__ == "__main__":
     demo.queue(default_concurrency_limit=1)
