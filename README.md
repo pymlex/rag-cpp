@@ -93,9 +93,9 @@ Open `.env` in the repository root. It is created from `.env.example` on first i
 | `ZVENO_BASE_URL` | API base, default `https://api.zveno.ai/v1` |
 | `ZVENO_MODEL` | LLM id, default `openai/gpt-oss-120b` |
 | `EMBEDDING_URL` | Local embedding HTTP root, default `http://127.0.0.1:8000/` |
-| `RAG_CORPUS_ROOT` | Single folder with all documents; nested folders are allowed |
+| `RAG_CORPUS_ROOT` | Single folder with all documents, nested folders are allowed |
 | `EMBEDDING_MODEL_ID` | HF model id for chunk tokenisation, default `mlsa-iai-msu-lab/sci-rus-tiny` |
-| `RAG_PROFILE_CORPUS` | Optional override for py-spy scripts; usually same as `RAG_CORPUS_ROOT` |
+| `RAG_PROFILE_CORPUS` | Optional override for py-spy scripts, usually same as `RAG_CORPUS_ROOT` |
 | `PYSPY_DURATION` | Gradio profiling duration in seconds, default `30` |
 
 Example `.env`:
@@ -178,7 +178,7 @@ Copy `mcp_config.example.json` into your Cursor MCP settings and adjust paths.
 }
 ```
 
-Use the launcher `mcp_server.py` in the repo root, not `python\\mcp_server.py`. `ZVENOAI_API_KEY` is read from `.env` in the repo root; do not duplicate secrets in the MCP JSON.
+Use the launcher `mcp_server.py` in the repo root, not `python\\mcp_server.py`. `ZVENOAI_API_KEY` is read from `.env` in the repo root.
 
 Tools:
 
@@ -196,7 +196,7 @@ python mcp_server.py
 
 ## Index update semantics
 
-On each sync the scanner compares file hashes. Unchanged files are skipped. Removed files are deleted from SQLite; the HNSW file is rebuilt from remaining `vector_blob` rows with hard delete and no tombstones. Updated files are re-chunked and trigger the same rebuild path. Pure additions use incremental HNSW inserts only.
+On each sync the scanner compares file hashes. Unchanged files are skipped. Removed files are deleted from SQLite. The HNSW file is rebuilt from remaining `vector_blob` rows with hard delete and no tombstones. Updated files are re-chunked and trigger the same rebuild path. Pure additions use incremental HNSW inserts only.
 
 ## Hybrid retrieval
 
@@ -206,7 +206,7 @@ $$
 s(c) = 0.65 \cdot s_v(c) + 0.35 \cdot s_b(c)
 $$
 
-Hybrid search merges vector and BM25 ranks with weighted RRF, adds a lexical overlap rerank on chunk text, and keeps at most two chunks per canonical file path. Retrieval uses `RETRIEVAL_TOP_K = 16`; the LLM context uses `FINAL_TOP_K = 8` chunks with file path and chunk index.
+Hybrid search merges vector and BM25 ranks with weighted RRF, adds a lexical overlap rerank on chunk text, and keeps at most two chunks per canonical file path. Retrieval uses `RETRIEVAL_TOP_K = 16`. The LLM context uses `FINAL_TOP_K = 8` chunks with file path and chunk index.
 
 ## Benchmark pipeline
 
@@ -251,9 +251,9 @@ Retrieval matching uses canonical file keys. The lecture names `[DA-1] Datasets 
 
 | Metric | Value | Pass count |
 | --- | ---: | ---: |
-| `retrieval_pass_rate` | 10.5% | 2 из 19 |
-| `answer_pass_rate` | 21.1% | 4 из 19 |
-| `combined_pass_rate` | 5.3% | 1 из 19 |
+| `retrieval_pass_rate` | 10.5% | 2 / 19 |
+| `answer_pass_rate` | 21.1% | 4 / 19 |
+| `combined_pass_rate` | 5.3% | 1 / 19 |
 
 Most retrieval failures came from path strings that did not match between the QA file and the index, for example `DA-1 …` versus `[DA-1] …`, and from topical drift in top-8. Twelve answers returned the not-found template.
 
@@ -265,11 +265,11 @@ The same 19-question QA set on the lecture corpus. Settings: 320/80 token chunks
 
 | Metric | Value | Pass count | Δ vs baseline |
 | --- | ---: | ---: | ---: |
-| `retrieval_pass_rate` | **100%** | 19 из 19 | +89.5 pp |
-| `answer_pass_rate` | **73.7%** | 14 из 19 | +52.6 pp |
-| `answer_grounded_rate` | **78.9%** | 15 из 19 | — |
-| `answer_strict_pass_rate` | **15.8%** | 3 из 19 | — |
-| `combined_pass_rate` | **73.7%** | 14 из 19 | +68.4 pp |
+| `retrieval_pass_rate` | **100%** | 19 / 19 | +89.5 pp |
+| `answer_pass_rate` | **73.7%** | 14 / 19 | +52.6 pp |
+| `answer_grounded_rate` | **78.9%** | 15 / 19 | — |
+| `answer_strict_pass_rate` | **15.8%** | 3 / 19 | — |
+| `combined_pass_rate` | **73.7%** | 14 / 19 | +68.4 pp |
 
 ![Aggregate pass rates, 19 questions, pilot](benchmarks/reports/archive_19qa/aggregate.png)
 
@@ -281,11 +281,11 @@ Full QA set generated in batches of 20, then evaluated on the same lecture corpu
 
 | Metric | Value | Pass count |
 | --- | ---: | ---: |
-| `retrieval_pass_rate` | **80%** | 80 из 100 |
-| `answer_pass_rate` | **61%** | 61 из 100 |
-| `answer_grounded_rate` | **83%** | 83 из 100 |
-| `answer_strict_pass_rate` | **20%** | 20 из 100 |
-| `combined_pass_rate` | **47%** | 47 из 100 |
+| `retrieval_pass_rate` | **80%** | 80 / 100 |
+| `answer_pass_rate` | **61%** | 61 / 100 |
+| `answer_grounded_rate` | **83%** | 83 / 100 |
+| `answer_strict_pass_rate` | **20%** | 20 / 100 |
+| `combined_pass_rate` | **47%** | 47 / 100 |
 
 ![Aggregate pass rates, 100 questions](benchmarks/reports/aggregate.png)
 
@@ -293,13 +293,13 @@ Full QA set generated in batches of 20, then evaluated on the same lecture corpu
 
 **Retrieval at 80%.** Twenty questions miss the target lecture in top-16. The larger QA set covers more files and harder paraphrases than the 19-question pilot, so topical drift returns: hybrid search sometimes ranks a related ML lecture above the DA or pandas note that holds the answer.
 
-**Answers at 61%.** Thirty-three cases retrieve the correct file but fail the loose phrase check. The model gives a correct explanation with different wording than the `must_contain` list. Fourteen cases pass the answer check without retrieval pass: the generator answers from partially related chunks. Seventeen answers use the not-found template; some of these coincide with retrieval failure, others with empty or weak context in the selected chunks.
+**Answers at 61%.** Thirty-three cases retrieve the correct file but fail the loose phrase check. The model gives a correct explanation with different wording than the `must_contain` list. Fourteen cases pass the answer check without retrieval pass: the generator answers from partially related chunks. Seventeen answers use the not-found template. Some of these coincide with retrieval failure, others with empty or weak context in the selected chunks.
 
 **Strict phrases at 20%.** Only one in five answers repeats every benchmark phrase verbatim. High `answer_pass_rate` with low `answer_strict_pass_rate` is expected with this heuristic.
 
-**End-to-end at 47%.** Combined pass is lower than on the 19-question pilot because the benchmark is broader and less forgiving. The system finds the right document in most runs and produces a grounded answer in 83% of cases; the main gap is exact phrase overlap and about twenty retrieval misses on a hundred diverse questions.
+**End-to-end at 47%.** The system finds the right document in most runs and produces a grounded answer in 83% of cases. The main gap is exact phrase overlap and about twenty retrieval misses on a hundred diverse questions.
 
-Compared with the pilot on 19 questions, retrieval drops from 100% to 80%, answer pass from 73.7% to 61%, combined pass from 73.7% to 47%. The pilot confirmed the stack on a small set; the final evaluation reflects production-like variance across the full corpus.
+Compared with the pilot on 19 questions, retrieval drops from 100% to 80%, answer pass from 73.7% to 61%, combined pass from 73.7% to 47%. The pilot confirmed the stack on a small set. The final evaluation reflects production-like variance across the full corpus.
 
 Reproduce or refresh the figures:
 
@@ -443,10 +443,10 @@ If `ModuleNotFoundError: ragdb_native` appears after a successful build:
 | --- | --- |
 | `No matching distribution found for mcp` | PATH Python is 3.9. Remove `.venv`, install Python 3.12, rerun `install_all.ps1`. |
 | `pip uninstall` access denied | Fixed in install script: uses `python -m pip`, not `pip.exe`. |
-| `No module named pybind11` in CMake | Run `install_all.ps1` fully; build uses `.venv` Python, not system 3.12 without packages. |
-| `mingw32-make: No such file` | CMake configure failed first; read lines above `No rule to make target`. |
-| `No matching distribution found for tau2-bench` | Package is not on PyPI; install from `requirements-benchmark.txt` with git. Core RAG works without it. |
-| `install TARGETS given no LIBRARY DESTINATION` | Fixed in current `CMakeLists.txt`; run `git pull` and `.\scripts\build_cpp.ps1`. |
+| `No module named pybind11` in CMake | Run `install_all.ps1` fully, build uses `.venv` Python, not system 3.12 without packages. |
+| `mingw32-make: No such file` | CMake configure failed first, read lines above `No rule to make target`. |
+| `No matching distribution found for tau2-bench` | Package is not on PyPI, install from `requirements-benchmark.txt` with git. Core RAG works without it. |
+| `install TARGETS given no LIBRARY DESTINATION` | Fixed in current `CMakeLists.txt`, run `git pull` and `.\scripts\build_cpp.ps1`. |
 | `DLL load failed while importing ragdb_native` | MinGW runtime missing. Run `.\scripts\copy_mingw_runtime.ps1` and `.\scripts\install_native_module.ps1`, or set `MINGW_DLL_DIR` in `.env`. |
 | CMake picks wrong Python | Pass `-PythonExe` to `install_all.ps1` or delete `.venv`. |
 
