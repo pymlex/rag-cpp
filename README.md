@@ -1,12 +1,12 @@
 # C++ RAG for Windows
 
-Local retrieval stack for scientific and engineering text on Windows 10: C++ HNSW (`float32`, cosine), hybrid BM25 + vector search, HyDE, Zveno LLM, Gradio, and MCP tools.
+Local retrieval stack for scientific and engineering text on Windows 10: C++ HNSW with float32 vectors and cosine distance, hybrid BM25 and vector search, HyDE, Zveno LLM, Gradio, and MCP tools.
 
 <img width="1849" height="909" alt="image" src="https://github.com/user-attachments/assets/7d73f866-beaa-4dcc-a89b-061cf742ac77" />
 
 ## Overview
 
-The embedding model is served locally through [embeddings-inference-server](https://github.com/pymlex/embeddings-inference-server) with `mlsa-iai-msu-lab/sci-rus-tiny` (312-dimensional vectors, max sequence length 1024 tokens).
+The embedding model is served locally through [embeddings-inference-server](https://github.com/pymlex/embeddings-inference-server) with `mlsa-iai-msu-lab/sci-rus-tiny`: 312-dimensional vectors, maximum sequence length 1024 tokens.
 
 Repository: [pymlex/rag-cpp](https://github.com/pymlex/rag-cpp)
 
@@ -16,21 +16,21 @@ Repository: [pymlex/rag-cpp](https://github.com/pymlex/rag-cpp)
 | --- | --- |
 | C++ `ragdb_native` | HNSW graph, persistence, pybind11 module |
 | SQLite | Chunk text, metadata, `vector_blob` for hard rebuild |
-| BM25 | Lexical retrieval (`rank-bm25`) |
+| BM25 | Lexical retrieval via rank-bm25 |
 | Hybrid merge | `0.65` vector + `0.35` BM25 after min–max normalisation |
 | HyDE | Original user query plus one LLM paraphrase before embedding |
 | Zveno API | `openai/gpt-oss-120b` via OpenAI-compatible HTTP |
 
-Chunking uses `320` tokens per chunk and `80` token overlap, with splits at Markdown headings (`#`–`####`) before token windows (same tokenizer family as the embedding model). Changing chunk settings triggers a full re-index on the next sync.
+Chunking uses `320` tokens per chunk and `80` token overlap. The splitter cuts at Markdown headings level 1–4, then applies token windows with the same tokenizer as the embedding model. Changing chunk settings triggers a full re-index on the next sync.
 
 ## Prerequisites
 
 - Windows 10
-- **Python 3.10 or newer for `.venv`** (the `mcp` package does not support 3.9)
+- **Python 3.10 or newer for `.venv`**. The `mcp` package does not support 3.9.
 - `git`
 - `cmake` 3.20+
-- MinGW `gcc` / `g++` (detected by the build script) or MSVC toolchain
-- Internet access for the first install (pip, Hugging Face model weights, Zveno API, embedding server clone)
+- MinGW `gcc` / `g++` detected by the build script, or an MSVC toolchain
+- Internet access for the first install: pip, Hugging Face model weights, Zveno API, embedding server clone
 
 Run the system check before any build:
 
@@ -71,7 +71,7 @@ The script performs, in order:
 2. `.venv` creation
 3. `pip install -r requirements.txt`
 4. copy `.env.example` to `.env` when `.env` is missing
-5. C++ build through `scripts\build_cpp.ps1` (MinGW generator when `gcc` is found)
+5. C++ build through `scripts\build_cpp.ps1` with the MinGW generator when `gcc` is found
 6. clone `third_party\embeddings-inference-server` and install its `requirements.txt`
 
 If the C++ step fails, install MinGW or MSVC, rerun `.\scripts\build_cpp.ps1`, then continue from step 2 below.
@@ -93,7 +93,7 @@ Open `.env` in the repository root. It is created from `.env.example` on first i
 | `ZVENO_BASE_URL` | API base, default `https://api.zveno.ai/v1` |
 | `ZVENO_MODEL` | LLM id, default `openai/gpt-oss-120b` |
 | `EMBEDDING_URL` | Local embedding HTTP root, default `http://127.0.0.1:8000/` |
-| `RAG_CORPUS_ROOT` | Single folder with all documents (nested folders allowed) |
+| `RAG_CORPUS_ROOT` | Single folder with all documents; nested folders are allowed |
 | `EMBEDDING_MODEL_ID` | HF model id for chunk tokenisation, default `mlsa-iai-msu-lab/sci-rus-tiny` |
 | `RAG_PROFILE_CORPUS` | Optional override for py-spy scripts; usually same as `RAG_CORPUS_ROOT` |
 | `PYSPY_DURATION` | Gradio profiling duration in seconds, default `30` |
@@ -111,9 +111,9 @@ RAG_PROFILE_CORPUS=C:\data\my_corpus
 PYSPY_DURATION=30
 ```
 
-Put only text files you want indexed inside `RAG_CORPUS_ROOT`. Supported extensions are listed in `config/settings.py` (`.md`, `.py`, `.cpp`, `.txt`, `.json`, and others). Images, audio, and binaries are skipped.
+Put only text files you want indexed inside `RAG_CORPUS_ROOT`. Supported extensions are listed in `config/settings.py`: `.md`, `.py`, `.cpp`, `.txt`, `.json`, and others. Images, audio, and binaries are skipped.
 
-The index is written to `RAG_CORPUS_ROOT\rag_index\` (`hnsw.bin`, `chunks.sqlite`, `bm25_corpus.json`). That directory is gitignored.
+The index is written to `RAG_CORPUS_ROOT\rag_index\` as `hnsw.bin`, `chunks.sqlite`, and `bm25_corpus.json`. That directory is gitignored.
 
 ### 3. Activate the virtual environment
 
@@ -126,7 +126,7 @@ cd rag-cpp
 
 ### 4. Start the embedding server
 
-Terminal A:
+First terminal:
 
 ```powershell
 .\scripts\run_embeddings_local.ps1
@@ -144,13 +144,13 @@ You should receive a JSON array of one 312-dimensional vector.
 
 ### 5. Index the corpus and open Gradio
 
-Terminal B (venv active, embedding server still running):
+Second terminal, venv active, embedding server still running:
 
 ```powershell
 python gradio_app.py
 ```
 
-Open `http://127.0.0.1:7860`. The UI shows the corpus path from `RAG_CORPUS_ROOT`. Each query triggers a sync (new, changed, and deleted files), HyDE expansion, hybrid retrieval, and an LLM answer. If nothing relevant is found, the model returns an explicit not-found message in Russian.
+Open `http://127.0.0.1:7860`. The UI shows the corpus path from `RAG_CORPUS_ROOT`. Each query triggers a sync of new, changed, and deleted files, HyDE expansion, hybrid retrieval, and an LLM answer. If nothing relevant is found, the model returns an explicit not-found message in Russian.
 
 CLI one-shot query:
 
@@ -196,7 +196,7 @@ python mcp_server.py
 
 ## Index update semantics
 
-On each sync the scanner compares file hashes. Unchanged files are skipped. Removed files are deleted from SQLite; the HNSW file is rebuilt from remaining `vector_blob` rows (hard delete, no tombstones). Updated files are re-chunked and trigger the same rebuild path. Pure additions use incremental HNSW inserts only.
+On each sync the scanner compares file hashes. Unchanged files are skipped. Removed files are deleted from SQLite; the HNSW file is rebuilt from remaining `vector_blob` rows with hard delete and no tombstones. Updated files are re-chunked and trigger the same rebuild path. Pure additions use incremental HNSW inserts only.
 
 ## Hybrid retrieval
 
@@ -233,7 +233,7 @@ Or both steps:
 .\scripts\run_benchmark.ps1
 ```
 
-Metrics written to `benchmarks/results/<timestamp>/metrics.json`:
+Metrics are written to `benchmarks/results/<timestamp>/metrics.json`. Each eval run also refreshes `benchmarks/reports/` with `aggregate.png` and `outcomes.png`. Both plots use a grid with `alpha=0.5`.
 
 | Metric | Definition |
 | --- | --- |
@@ -243,9 +243,9 @@ Metrics written to `benchmarks/results/<timestamp>/metrics.json`:
 | `answer_strict_pass_rate` | All `must_contain` phrases present in the answer |
 | `answer_grounded_rate` | Answer is not the fixed not-found template |
 
-Retrieval matching uses canonical file keys: `[DA-1] Datasets…` and `DA-1 Datasets…` count as the same lecture. Each eval run writes `benchmarks/results/<timestamp>/` and refreshes `benchmarks/reports/` with `aggregate.png` and `outcomes.png`. Both plots use `grid(alpha=0.5)`.
+Retrieval matching uses canonical file keys. The lecture names `[DA-1] Datasets and data mining.md` and `DA-1 Datasets and data mining.md` count as the same document.
 
-#### Baseline run — old stack, 19 QA, `20260522_184831`
+#### Baseline — old stack, 19 questions
 
 500/100 token chunks without heading splits, min–max hybrid fusion, eval top-8, substring path check in the evaluator.
 
@@ -257,11 +257,11 @@ Retrieval matching uses canonical file keys: `[DA-1] Datasets…` and `DA-1 Data
 
 Most retrieval failures came from path strings that did not match between the QA file and the index, for example `DA-1 …` versus `[DA-1] …`, and from topical drift in top-8. Twelve answers returned the not-found template.
 
-![Per-case retrieval and answer pass, 19 QA baseline era](benchmarks/reports/archive_19qa/pass_rates.png)
+![Per-case retrieval and answer pass, 19 questions, baseline](benchmarks/reports/archive_19qa/pass_rates.png)
 
-#### Updated stack, 19 QA, `20260522_195233`
+#### Pilot — updated stack, 19 questions
 
-Same 19-question QA set on the lecture corpus. Settings: 320/80 token chunks with Markdown heading splits, weighted RRF and overlap rerank, `RETRIEVAL_TOP_K = 16`, `FINAL_TOP_K = 8`, canonical path matching in eval.
+The same 19-question QA set on the lecture corpus. Settings: 320/80 token chunks with Markdown heading splits, weighted RRF and overlap rerank, `RETRIEVAL_TOP_K = 16`, `FINAL_TOP_K = 8`, canonical path matching in eval.
 
 | Metric | Value | Pass count | Δ vs baseline |
 | --- | ---: | ---: | ---: |
@@ -271,19 +271,35 @@ Same 19-question QA set on the lecture corpus. Settings: 320/80 token chunks wit
 | `answer_strict_pass_rate` | **15.8%** | 3 из 19 | — |
 | `combined_pass_rate` | **73.7%** | 14 из 19 | +68.4 pp |
 
-![Aggregate pass rates, 19 QA](benchmarks/reports/archive_19qa/aggregate.png)
+![Aggregate pass rates, 19 questions, pilot](benchmarks/reports/archive_19qa/aggregate.png)
 
-**Retrieval.** The jump from 10.5% reflects both metric fixes and search changes. Canonical keys removed false misses on file names. RRF reranking, smaller heading-aware chunks, and top-16 retrieval kept the target lecture in the candidate list for every question.
+On the pilot set, retrieval reached 100% after canonical path keys, RRF reranking, smaller heading-aware chunks, and top-16 search. Five answers still failed the loose phrase check because of paraphrases or missing exact tokens from `must_contain`. Four answers used the not-found template even when retrieval passed.
 
-**Answers.** Five cases fail the loose phrase check. Two synthetic-spectrum questions are answered in prose with `N` and `1000` instead of the exact strings `N_SAMPLES = 2000` and `SEQ_LEN = 1000` from `must_contain`. Other misses are paraphrases on pandas, recommender pipelines, and convolutions where retrieval succeeds but wording differs. Four answers still use the not-found template while retrieval passes.
+#### Final evaluation — 100 questions
 
-**Strict phrases.** Three answers include every `must_contain` string verbatim. The benchmark remains strict on exact phrases, so `answer_pass_rate` can be high while `answer_strict_pass_rate` stays low.
+Full QA set generated in batches of 20, then evaluated on the same lecture corpus with the current stack: 320/80 chunks, heading splits, RRF hybrid search, `RETRIEVAL_TOP_K = 16`, `FINAL_TOP_K = 8`.
 
-**End-to-end.** Compared with 5.3% on the baseline, the stack is usable on this corpus. Remaining errors are mostly wording and QA phrasing, not missing source files in retrieval.
+| Metric | Value | Pass count |
+| --- | ---: | ---: |
+| `retrieval_pass_rate` | **80%** | 80 из 100 |
+| `answer_pass_rate` | **61%** | 61 из 100 |
+| `answer_grounded_rate` | **83%** | 83 из 100 |
+| `answer_strict_pass_rate` | **20%** | 20 из 100 |
+| `combined_pass_rate` | **47%** | 47 из 100 |
 
-#### Final evaluation — 100 QA
+![Aggregate pass rates, 100 questions](benchmarks/reports/aggregate.png)
 
-After you generate 100 questions and run `benchmarks/run_local_rag_eval.py`, the latest figures land in `benchmarks/reports/aggregate.png` and `benchmarks/reports/outcomes.png`. The outcomes chart shows pass and fail counts per metric type, not per-question bars. This section will be filled with the 100-QA metrics and analysis once that run completes.
+![Pass and fail counts by metric type, 100 questions](benchmarks/reports/outcomes.png)
+
+**Retrieval at 80%.** Twenty questions miss the target lecture in top-16. The larger QA set covers more files and harder paraphrases than the 19-question pilot, so topical drift returns: hybrid search sometimes ranks a related ML lecture above the DA or pandas note that holds the answer.
+
+**Answers at 61%.** Thirty-three cases retrieve the correct file but fail the loose phrase check. The model gives a correct explanation with different wording than the `must_contain` list. Fourteen cases pass the answer check without retrieval pass: the generator answers from partially related chunks. Seventeen answers use the not-found template; some of these coincide with retrieval failure, others with empty or weak context in the selected chunks.
+
+**Strict phrases at 20%.** Only one in five answers repeats every benchmark phrase verbatim. High `answer_pass_rate` with low `answer_strict_pass_rate` is expected with this heuristic.
+
+**End-to-end at 47%.** Combined pass is lower than on the 19-question pilot because the benchmark is broader and less forgiving. The system finds the right document in most runs and produces a grounded answer in 83% of cases; the main gap is exact phrase overlap and about twenty retrieval misses on a hundred diverse questions.
+
+Compared with the pilot on 19 questions, retrieval drops from 100% to 80%, answer pass from 73.7% to 61%, combined pass from 73.7% to 47%. The pilot confirmed the stack on a small set; the final evaluation reflects production-like variance across the full corpus.
 
 Reproduce or refresh the figures:
 
@@ -294,7 +310,7 @@ python benchmarks\run_local_rag_eval.py
 
 ### 3. Optional τ²-bench
 
-Installed from GitHub during `install_all.ps1` (`requirements-benchmark.txt`). Manual install:
+Installed from GitHub during `install_all.ps1` via `requirements-benchmark.txt`. Manual install:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-benchmark.txt
@@ -331,7 +347,8 @@ rag-cpp/
 
 ## Architecture
 
-Component view (source: `uml/architecture.puml`):
+Component view. Source file: `uml/architecture.puml`.
+
 
 ```mermaid
 flowchart TB
@@ -372,7 +389,8 @@ flowchart TB
   BM25 --> Store
 ```
 
-Query sequence (source: `uml/query_flow.puml`):
+Query sequence. Source file: `uml/query_flow.puml`.
+
 
 ```mermaid
 sequenceDiagram
@@ -427,7 +445,7 @@ If `ModuleNotFoundError: ragdb_native` appears after a successful build:
 | `pip uninstall` access denied | Fixed in install script: uses `python -m pip`, not `pip.exe`. |
 | `No module named pybind11` in CMake | Run `install_all.ps1` fully; build uses `.venv` Python, not system 3.12 without packages. |
 | `mingw32-make: No such file` | CMake configure failed first; read lines above `No rule to make target`. |
-| `No matching distribution found for tau2-bench` | Package is not on PyPI; use `requirements-benchmark.txt` (git install). Core RAG works without it. |
+| `No matching distribution found for tau2-bench` | Package is not on PyPI; install from `requirements-benchmark.txt` with git. Core RAG works without it. |
 | `install TARGETS given no LIBRARY DESTINATION` | Fixed in current `CMakeLists.txt`; run `git pull` and `.\scripts\build_cpp.ps1`. |
 | `DLL load failed while importing ragdb_native` | MinGW runtime missing. Run `.\scripts\copy_mingw_runtime.ps1` and `.\scripts\install_native_module.ps1`, or set `MINGW_DLL_DIR` in `.env`. |
 | CMake picks wrong Python | Pass `-PythonExe` to `install_all.ps1` or delete `.venv`. |
@@ -435,6 +453,6 @@ If `ModuleNotFoundError: ragdb_native` appears after a successful build:
 ## Daily run checklist
 
 1. `.\.venv\Scripts\Activate.ps1`
-2. `.\scripts\run_embeddings_local.ps1` (terminal A)
-3. `python gradio_app.py` or MCP client (terminal B)
+2. `.\scripts\run_embeddings_local.ps1` in the first terminal
+3. `python gradio_app.py` or an MCP client in the second terminal
 4. Ensure `RAG_CORPUS_ROOT` in `.env` points to your document tree
