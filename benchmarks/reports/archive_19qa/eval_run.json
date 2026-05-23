@@ -1,0 +1,10 @@
+{
+  "run_id": "20260522_195233",
+  "cases": 19,
+  "retrieval_top_k": 16,
+  "retrieval_pass_rate": 1.0,
+  "answer_pass_rate": 0.7368421052631579,
+  "answer_strict_pass_rate": 0.15789473684210525,
+  "answer_grounded_rate": 0.7894736842105263,
+  "combined_pass_rate": 0.7368421052631579
+}

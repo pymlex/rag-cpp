@@ -1,0 +1,334 @@
+{
+  "n": 19,
+  "retrieval_top_k": 16,
+  "retrieval_pass_rate": 1.0,
+  "answer_pass_rate": 0.7368421052631579,
+  "answer_strict_pass_rate": 0.15789473684210525,
+  "answer_grounded_rate": 0.7894736842105263,
+  "combined_pass_rate": 0.7368421052631579,
+  "rows": [
+    {
+      "question": "Как задаются количество образцов и длина последовательности в синтетическом датасете пиков?",
+      "source_file": "Synthetic atomic spectrum peaks dataset.md",
+      "retrieval_pass": true,
+      "answer_pass": false,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-10] Recurrent Neural Networks.md",
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-11] Transformers.md",
+        "[ML-07] Deep Learning and CNN.md",
+        "Synthetic atomic spectrum peaks dataset.md",
+        "[ML-05] Recommender system.md"
+      ],
+      "answer_head": "В синтетическом датасете пиков количество образцов задаётся параметром `N` (в примере — `N = 2000` сигналов), а длина каждой последовательности фиксирована и равна `1000` значениям. Таким образом, при генерации датасета указываются два параметра:  \n\n- **количество образцов** — `N` (например, 2000);  \n- **длина последовательности** — `1000` точек (ч"
+    },
+    {
+      "question": "Какая функция используется для создания профиля отдельного пика?",
+      "source_file": "Synthetic atomic spectrum peaks dataset.md",
+      "retrieval_pass": true,
+      "answer_pass": false,
+      "answer_strict_pass": false,
+      "answer_grounded": false,
+      "retrieved_files": [
+        "[ML-10] Recurrent Neural Networks.md",
+        "[ML-02] Logistic regression.md",
+        "[ML-01] Linear regression.md",
+        "[ML-05] Recommender system.md",
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-06] Neural networks and Pytorch.md"
+      ],
+      "answer_head": "В предоставленных документах нет информации для ответа на этот вопрос."
+    },
+    {
+      "question": "Сколько пиков может содержать один синтетический сигнал?",
+      "source_file": "Synthetic atomic spectrum peaks dataset.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": true,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-06] Neural networks and Pytorch.md",
+        "Synthetic atomic spectrum peaks dataset.md",
+        "[ML-03] Decision tree.md",
+        "[ML-01] Linear regression.md",
+        "[ML-10] Recurrent Neural Networks.md",
+        "[ML-08] GenAI. AE, GAN, VAE, and Diffusion.md"
+      ],
+      "answer_head": "Один синтетический сигнал может содержать **от 3 до 10 пиков**. (Это указано в описании датасета, где говорится, что каждый сигнал содержит случайное число пиков в диапазоне 3–10.)"
+    },
+    {
+      "question": "Какие шесть этапов включает методология CRISP‑DM?",
+      "source_file": "DA-1 Datasets and data mining.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": true,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[DA-1] Datasets and data mining.md",
+        "[ML-01] Linear regression.md",
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-01] Linear regression.md",
+        "[ML-04] K-means.md",
+        "[ML-03] Decision tree.md"
+      ],
+      "answer_head": "Методология CRISP‑DM состоит из следующих шести этапов:\n\n1. **Business Understanding** – бизнес‑анализ (определение целей проекта и требований бизнеса).  \n2. **Data Understanding** – понимание данных (сбор и предварительный анализ данных).  \n3. **Data Preparation** – подготовка данных (очистка, обработка пропусков, преобразование формата).  \n4. **M"
+    },
+    {
+      "question": "В чём разница между реальными и синтетическими датасетами?",
+      "source_file": "DA-1 Datasets and data mining.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": true,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-11] Transformers.md",
+        "[ML-01] Linear regression.md",
+        "[ML-10] Recurrent Neural Networks.md",
+        "[DA-1] Datasets and data mining.md",
+        "[ML-09] Image Segmentation and Detection.md"
+      ],
+      "answer_head": "**Разница между реальными и синтетическими датасетами** состоит в их происхождении и свойствах:\n\n| Характеристика | Реальные датасеты | Синтетические датасеты |\n|----------------|-------------------|------------------------|\n| **Источник** | Собираются из реального мира: опросы, датчики, метрики онлайн‑платформ, наблюдения и т.п. | Создаются искусс"
+    },
+    {
+      "question": "Какой метод индексации в pandas использует метки строк и имена столбцов?",
+      "source_file": "DA-2 Pandas data processing.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[DA-2] Pandas data processing.md",
+        "[DA-2] Pandas data processing.md",
+        "[DA-1] Datasets and data mining.md",
+        "[ML-01] Linear regression.md",
+        "[ML-09] Image Segmentation and Detection.md",
+        "[ML-02] Logistic regression.md"
+      ],
+      "answer_head": "Метод индексации `loc` использует метки строк и имена столбцов."
+    },
+    {
+      "question": "Что делает метод iloc в pandas?",
+      "source_file": "DA-2 Pandas data processing.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[DA-2] Pandas data processing.md",
+        "[DA-2] Pandas data processing.md",
+        "[DA-1] Datasets and data mining.md",
+        "[DA-1] Datasets and data mining.md",
+        "[ML-09] Image Segmentation and Detection.md",
+        "[ML-01] Linear regression.md"
+      ],
+      "answer_head": "Метод **`iloc`** в pandas используется для позиционной (целочисленной) индексации данных. Он позволяет выбирать строки и столбцы DataFrame или Series по их порядковому номеру — по индексу, начинающемуся с 0. С помощью `iloc` можно обращаться к отдельным элементам, срезам, спискам позиций и комбинированным выборкам, указывая индексы как числа, диапа"
+    },
+    {
+      "question": "Как вычислить минимальное и максимальное значение столбца в pandas?",
+      "source_file": "DA-3 Mathematical statistics basics.md",
+      "retrieval_pass": true,
+      "answer_pass": false,
+      "answer_strict_pass": false,
+      "answer_grounded": false,
+      "retrieved_files": [
+        "[DA-1] Datasets and data mining.md",
+        "[ML-03] Decision tree.md",
+        "[DA-1] Datasets and data mining.md",
+        "[DA-2] Pandas data processing.md",
+        "[ML-09] Image Segmentation and Detection.md",
+        "[ML-03] Decision tree.md"
+      ],
+      "answer_head": "В предоставленных документах нет информации для ответа на этот вопрос."
+    },
+    {
+      "question": "Что такое выборочное среднее и как его получить в pandas?",
+      "source_file": "DA-3 Mathematical statistics basics.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[DA-3] Mathematical statistics basics.md",
+        "[DA-2] Pandas data processing.md",
+        "[DA-1] Datasets and data mining.md",
+        "[ML-09] Image Segmentation and Detection.md",
+        "[ML-05] Recommender system.md",
+        "[DA-3] Mathematical statistics basics.md"
+      ],
+      "answer_head": "**Выборочное среднее** – это оценка математического ожидания для конечной выборки  \n\\(X=\\{x_1,\\dots ,x_N\\}\\). Оно вычисляется как сумма всех наблюдений, делённая на их количество:\n\n\\[\n\\bar{x}= \\frac{1}{N}\\sum_{i=1}^{N} x_i\n\\]\n\nТо есть это обычное арифметическое среднее значений в выборке.\n\n**Как получить выборочное среднее в pandas**\n\nЕсли у вас ес"
+    },
+    {
+      "question": "Как определяется мода в наборе данных?",
+      "source_file": "DA-3 Mathematical statistics basics.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[DA-3] Mathematical statistics basics.md",
+        "[ML-03] Decision tree.md",
+        "[DA-3] Mathematical statistics basics.md",
+        "[ML-02] Logistic regression.md",
+        "[ML-03] Decision tree.md",
+        "[ML-01] Linear regression.md"
+      ],
+      "answer_head": "**Мода** – это значение, которое встречается в наборе данных чаще всех остальных.  \n\nОпределяется она простым подсчётом частот каждого наблюдения:  \n1. Для каждого уникального значения \\(x_i\\) считаем, сколько раз оно появляется в выборке.  \n2. Находим значение (или значения), имеющие максимальную частоту.  \n3. Это и есть мода(ы) выборки.  \n\nВ pand"
+    },
+    {
+      "question": "Что предсказывает регрессия?",
+      "source_file": "ML-01 Linear regression.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-01] Linear regression.md",
+        "[ML-01] Linear regression.md",
+        "[ML-03] Decision tree.md",
+        "[ML-03] Decision tree.md",
+        "[ML-02] Logistic regression.md",
+        "[DA-3] Mathematical statistics basics.md"
+      ],
+      "answer_head": "Регрессия предсказывает **численную (непрерывную) величину** — целевую переменную, которую пытаются оценить по известным численным признакам объектов. (См. фрагмент [5] «Регрессия — это способ предсказывать численную величину…»)"
+    },
+    {
+      "question": "Как в логистической регрессии определяется odds?",
+      "source_file": "ML-02 Logistic regression.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-02] Logistic regression.md",
+        "[ML-02] Logistic regression.md",
+        "[DA-3] Mathematical statistics basics.md",
+        "[DA-3] Mathematical statistics basics.md",
+        "[ML-03] Decision tree.md",
+        "[ML-06] Neural networks and Pytorch.md"
+      ],
+      "answer_head": "В логистической регрессии вероятность положительного класса для объекта \\(x_i\\) задаётся функцией сигмоида  \n\n\\[\np_i = \\frac{1}{1+e^{-f(x_i)}}, \\qquad \nf(x_i)=\\sum_{j=1}^{n} w^{j} x_i^{j}.\n\\]\n\nОтношение шансов (odds) определяется как отношение этой вероятности к её дополнению:\n\n\\[\n\\text{odds}_i \\;=\\; \\frac{p_i}{1-p_i}.\n\\]\n\nПодставляя выражение для "
+    },
+    {
+      "question": "С какого узла начинается предсказание в дереве решений?",
+      "source_file": "ML-03 Decision tree.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-03] Decision tree.md",
+        "[ML-03] Decision tree.md",
+        "[ML-10] Recurrent Neural Networks.md",
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-05] Recommender system.md",
+        "[ML-05] Recommender system.md"
+      ],
+      "answer_head": "Предсказание в дереве решений начинается с **корня** дерева. (См. алгоритм предсказания: «Начинаем движение с корня».)"
+    },
+    {
+      "question": "Какие два основных шага включены в алгоритм K‑means?",
+      "source_file": "ML-04 K-means.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-04] K-means.md",
+        "[ML-04] K-means.md",
+        "[ML-10] Recurrent Neural Networks.md",
+        "[ML-03] Decision tree.md",
+        "[ML-05] Recommender system.md",
+        "[ML-02] Logistic regression.md"
+      ],
+      "answer_head": "Алгоритм K‑means состоит из двух основных шагов:\n\n1. **Инициализация центров** – случайным образом выбираются \\(K\\) точек из выборки, которые принимаются за начальные приближения центров кластеров \\(C=\\{c^{k}\\}_{k=1}^{K}\\).\n\n2. **Назначение объектов к кластерам** – каждый объект \\(x_i\\) относится к ближайшему центру \\(c^{k}\\); таким образом формиру"
+    },
+    {
+      "question": "Какие основные этапы включает pipeline рекомендационной системы?",
+      "source_file": "ML-05 Recommender system.md",
+      "retrieval_pass": true,
+      "answer_pass": false,
+      "answer_strict_pass": false,
+      "answer_grounded": false,
+      "retrieved_files": [
+        "[DA-1] Datasets and data mining.md",
+        "[ML-05] Recommender system.md",
+        "[ML-05] Recommender system.md",
+        "[ML-11] Transformers.md",
+        "[DA-1] Datasets and data mining.md",
+        "[ML-01] Linear regression.md"
+      ],
+      "answer_head": "В предоставленных документах нет информации для ответа на этот вопрос."
+    },
+    {
+      "question": "Что делает перцептрон Розенблатта с входными признаками?",
+      "source_file": "ML-06 Neural networks and Pytorch.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-01] Linear regression.md",
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-11] Transformers.md",
+        "[ML-03] Decision tree.md"
+      ],
+      "answer_head": "Перцептрон Розенблатта **линейно комбинирует** входные признаки: каждый признак \\(x_i\\) умножается на соответствующий вес \\(w_i\\), к полученной сумме добавляется сдвиг (bias) \\(b\\). Полученная взвешенная сумма  \n\n\\[\nz = \\sum_{i=1}^{n} w_i x_i + b\n\\]\n\nслужит «характеристикой» объекта и затем передаётся в пороговую (sign) функцию, которая выдаёт клас"
+    },
+    {
+      "question": "Как выглядит сигмоида как функция активации?",
+      "source_file": "ML-06 Neural networks and Pytorch.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-01] Linear regression.md",
+        "[ML-01] Linear regression.md",
+        "[ML-11] Transformers.md",
+        "[ML-10] Recurrent Neural Networks.md"
+      ],
+      "answer_head": "Сигмоида — это функция активации, задаваемая формулой  \n\n\\[\n\\sigma(z)=\\frac{1}{1+e^{-z}},\n\\]\n\nгде \\(z\\) — входное значение нейрона (линейная комбинация признаков).  \n\nВ виде кода на Python она выглядит так:\n\n```python\ndef sigmoid(x):\n    return 1 / (1 + np.exp(-x))\n```\n\nЭта функция преобразует любое вещественное число в диапазон \\((0,\\,1)\\), поэтом"
+    },
+    {
+      "question": "Почему MLP неэффективен для обработки изображений по сравнению с CNN?",
+      "source_file": "ML-07 Deep Learning and CNN.md",
+      "retrieval_pass": true,
+      "answer_pass": true,
+      "answer_strict_pass": false,
+      "answer_grounded": true,
+      "retrieved_files": [
+        "[ML-07] Deep Learning and CNN.md",
+        "[DA-1] Datasets and data mining.md",
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-08] GenAI. AE, GAN, VAE, and Diffusion.md",
+        "[ML-11] Transformers.md",
+        "[ML-06] Neural networks and Pytorch.md"
+      ],
+      "answer_head": "MLP (многослойный перцептрон) плохо подходит для обработки изображений по нескольким причинам, которые явно описаны в предоставленном фрагменте [1]:\n\n1. **Огромное количество параметров**.  \n   При работе с изображением его обычно «разворачивают» в один длинный вектор. Если взять, например, изображение 224 × 224 × 3 и подключить к нему хотя бы один"
+    },
+    {
+      "question": "Что делает операция свёртки в сверточных нейронных сетях?",
+      "source_file": "ML-07 Deep Learning and CNN.md",
+      "retrieval_pass": true,
+      "answer_pass": false,
+      "answer_strict_pass": false,
+      "answer_grounded": false,
+      "retrieved_files": [
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-07] Deep Learning and CNN.md",
+        "[ML-06] Neural networks and Pytorch.md",
+        "[ML-10] Recurrent Neural Networks.md",
+        "[ML-08] GenAI. AE, GAN, VAE, and Diffusion.md"
+      ],
+      "answer_head": "В предоставленных документах нет информации для ответа на этот вопрос."
+    }
+  ]
+}

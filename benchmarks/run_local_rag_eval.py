@@ -3,7 +3,6 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 from dotenv import load_dotenv
 
@@ -16,6 +15,7 @@ from benchmarks.eval_metrics import (
     answer_hit_strict,
     retrieval_hit,
 )
+from benchmarks.plot_eval import plot_aggregate, plot_outcomes
 from config.settings import RETRIEVAL_TOP_K
 from python.corpus_paths import get_corpus_root
 from python.embeddings_client import EmbeddingsClient
@@ -58,8 +58,9 @@ def main() -> None:
     combined_scores = []
     rows = []
 
-    for item in dataset:
+    for index, item in enumerate(dataset, start=1):
         question = item["question"]
+        print(f"eval {index}/{len(dataset)}", flush=True)
         hyde_text = expand_query(llm, question)
         vector = embedder.embed([hyde_text])[0]
         chunks = searcher.search(vector, hyde_text, top_k=RETRIEVAL_TOP_K)
@@ -103,40 +104,12 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    x = np.arange(len(dataset))
-    width = 0.35
-    plt.figure(figsize=(10, 5))
-    plt.bar(x - width / 2, retrieval_scores, width=width, label="retrieval")
-    plt.bar(x + width / 2, answer_loose_scores, width=width, label="answer")
-    plt.ylim(0, 1.05)
-    plt.xlabel("case")
-    plt.ylabel("pass")
-    plt.legend()
-    plt.title("rag_eval")
-    plt.tight_layout()
-    plt.savefig(out_dir / "pass_rates.png", dpi=160)
-    plt.close()
-
-    plt.figure(figsize=(6, 4))
-    plt.bar(
-        ["retrieval", "answer", "answer_strict", "grounded", "combined"],
-        [
-            metrics["retrieval_pass_rate"],
-            metrics["answer_pass_rate"],
-            metrics["answer_strict_pass_rate"],
-            metrics["answer_grounded_rate"],
-            metrics["combined_pass_rate"],
-        ],
-    )
-    plt.ylim(0, 1.05)
-    plt.title("aggregate")
-    plt.tight_layout()
-    plt.savefig(out_dir / "aggregate.png", dpi=160)
-    plt.close()
+    plot_aggregate(metrics, out_dir / "aggregate.png")
+    plot_outcomes(metrics, out_dir / "outcomes.png")
 
     report_dir = ROOT / "benchmarks" / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)
-    for name in ("metrics.json", "pass_rates.png", "aggregate.png"):
+    for name in ("metrics.json", "aggregate.png", "outcomes.png"):
         target = report_dir / name
         target.write_bytes((out_dir / name).read_bytes())
     (report_dir / "eval_run.json").write_text(
@@ -156,6 +129,7 @@ def main() -> None:
         ),
         encoding="utf-8",
     )
+    print(f"metrics: {out_dir / 'metrics.json'}", flush=True)
 
 
 if __name__ == "__main__":

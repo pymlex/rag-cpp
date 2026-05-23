@@ -212,14 +212,14 @@ Hybrid search merges vector and BM25 ranks with weighted RRF, adds a lexical ove
 
 Requirements: `.env` filled, embedding server running, `RAG_CORPUS_ROOT` populated with your documents.
 
-### 1. Generate 20 QA pairs with Zveno
+### 1. Generate 100 QA pairs with Zveno
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 python benchmarks\generate_qa_dataset.py
 ```
 
-Output: `benchmarks/generated_qa.json` (also archived under `benchmarks/datasets/`).
+The script calls Zveno in batches of 20 until `benchmarks/generated_qa.json` contains 100 unique questions. Raw batch replies are stored under `benchmarks/datasets/raw_batches/`. A timestamped copy is written to `benchmarks/datasets/`.
 
 ### 2. Run retrieval and answer evaluation
 
@@ -237,55 +237,58 @@ Metrics written to `benchmarks/results/<timestamp>/metrics.json`:
 
 | Metric | Definition |
 | --- | --- |
-| `retrieval_pass_rate` | Share of cases where the canonical `source_file` appears in hybrid top-`RETRIEVAL_TOP_K` (16) |
+| `retrieval_pass_rate` | Share of cases where the canonical `source_file` appears in hybrid top-16 |
 | `answer_pass_rate` | Share of cases where the RAG answer contains at least half of `must_contain` phrases |
 | `combined_pass_rate` | Fraction passing both retrieval and answer checks |
 | `answer_strict_pass_rate` | All `must_contain` phrases present in the answer |
 | `answer_grounded_rate` | Answer is not the fixed not-found template |
 
-Retrieval matching uses canonical file keys (`[DA-1] …` equals `DA-1 …`). Each eval run refreshes `benchmarks/reports/` for the figures below.
+Retrieval matching uses canonical file keys: `[DA-1] Datasets…` and `DA-1 Datasets…` count as the same lecture. Each eval run writes `benchmarks/results/<timestamp>/` and refreshes `benchmarks/reports/` with `aggregate.png` and `outcomes.png`. Both plots use `grid(alpha=0.5)`.
 
-#### Baseline run — old stack (`20260522_184831`, 19 cases)
+#### Baseline run — old stack, 19 QA, `20260522_184831`
 
-Settings: 500/100 token chunks without heading splits, min–max hybrid fusion, eval `top_k = 8`, substring path check in the evaluator.
+500/100 token chunks without heading splits, min–max hybrid fusion, eval top-8, substring path check in the evaluator.
 
-| Metric | Value |
-| --- | ---: |
-| `retrieval_pass_rate` | 10.5% (2 / 19) |
-| `answer_pass_rate` | 21.1% (4 / 19) |
-| `combined_pass_rate` | 5.3% (1 / 19) |
-
-Most retrieval failures were scoring artefacts (`DA-1 …` vs `[DA-1] …`), plus topical drift in top-8. Twelve answers returned the not-found template.
-
-#### Current run — updated stack (`20260522_195233`, 19 cases)
-
-Same QA set and corpus (`C:\Users\aleks\Downloads\rag-cpp`, user lecture tree). Settings: 320/80 token chunks with Markdown heading splits, weighted RRF + overlap rerank, `RETRIEVAL_TOP_K = 16`, `FINAL_TOP_K = 8`, canonical path matching in eval.
-
-| Metric | Value | Δ vs baseline |
+| Metric | Value | Pass count |
 | --- | ---: | ---: |
-| `retrieval_pass_rate` | **100%** (19 / 19) | +89.5 pp |
-| `answer_pass_rate` | **73.7%** (14 / 19) | +52.6 pp |
-| `answer_grounded_rate` | **78.9%** (15 / 19) | — |
-| `answer_strict_pass_rate` | **15.8%** (3 / 19) | — |
-| `combined_pass_rate` | **73.7%** (14 / 19) | +68.4 pp |
+| `retrieval_pass_rate` | 10.5% | 2 из 19 |
+| `answer_pass_rate` | 21.1% | 4 из 19 |
+| `combined_pass_rate` | 5.3% | 1 из 19 |
 
-![Per-case retrieval and answer pass](benchmarks/reports/pass_rates.png)
+Most retrieval failures came from path strings that did not match between the QA file and the index, for example `DA-1 …` versus `[DA-1] …`, and from topical drift in top-8. Twelve answers returned the not-found template.
 
-Blue bars are retrieval, orange bars are answer (`must_contain` half-match). After the update, every case retrieves the target lecture; fourteen also pass the answer check.
+![Per-case retrieval and answer pass, 19 QA baseline era](benchmarks/reports/archive_19qa/pass_rates.png)
 
-![Aggregate pass rates](benchmarks/reports/aggregate.png)
+#### Updated stack, 19 QA, `20260522_195233`
 
-**Retrieval (100%).** The jump from 10.5% is not only “real” search quality: a large share of the old misses were false negatives from path strings. With canonical keys, every question now has the ground-truth file somewhere in the top-16 list. RRF reranking, smaller heading-aware chunks, and the wider pool reduced cases where the right lecture was missing entirely.
+Same 19-question QA set on the lecture corpus. Settings: 320/80 token chunks with Markdown heading splits, weighted RRF and overlap rerank, `RETRIEVAL_TOP_K = 16`, `FINAL_TOP_K = 8`, canonical path matching in eval.
 
-**Answers (73.7%).** Five cases still fail the loose phrase check. Two concern the synthetic spectrum note: the model answers correctly in prose but uses `N` / `1000` instead of the exact literals `N_SAMPLES = 2000` and `SEQ_LEN = 1000` required by `must_contain`. The other misses are paraphrases (pandas min/max, recommender pipeline stages, convolution wording) where retrieval succeeds but wording does not hit half of the benchmark phrases. Four answers still trigger the not-found template despite retrieval pass (`answer_grounded_rate` 78.9%).
+| Metric | Value | Pass count | Δ vs baseline |
+| --- | ---: | ---: | ---: |
+| `retrieval_pass_rate` | **100%** | 19 из 19 | +89.5 pp |
+| `answer_pass_rate` | **73.7%** | 14 из 19 | +52.6 pp |
+| `answer_grounded_rate` | **78.9%** | 15 из 19 | — |
+| `answer_strict_pass_rate` | **15.8%** | 3 из 19 | — |
+| `combined_pass_rate` | **73.7%** | 14 из 19 | +68.4 pp |
 
-**Strict phrases (15.8%).** Only three answers contain all `must_contain` strings verbatim. The benchmark heuristic remains strict; high `answer_pass_rate` with low `answer_strict_pass_rate` means the system answers substantively but not with the exact tokens the QA generator listed.
+![Aggregate pass rates, 19 QA](benchmarks/reports/archive_19qa/aggregate.png)
 
-**End-to-end (73.7%).** Compared with 5.3% baseline, the pipeline is usable for this corpus. Remaining gaps are mostly formulation and QA phrasing, not missing documents in retrieval.
+**Retrieval.** The jump from 10.5% reflects both metric fixes and search changes. Canonical keys removed false misses on file names. RRF reranking, smaller heading-aware chunks, and top-16 retrieval kept the target lecture in the candidate list for every question.
+
+**Answers.** Five cases fail the loose phrase check. Two synthetic-spectrum questions are answered in prose with `N` and `1000` instead of the exact strings `N_SAMPLES = 2000` and `SEQ_LEN = 1000` from `must_contain`. Other misses are paraphrases on pandas, recommender pipelines, and convolutions where retrieval succeeds but wording differs. Four answers still use the not-found template while retrieval passes.
+
+**Strict phrases.** Three answers include every `must_contain` string verbatim. The benchmark remains strict on exact phrases, so `answer_pass_rate` can be high while `answer_strict_pass_rate` stays low.
+
+**End-to-end.** Compared with 5.3% on the baseline, the stack is usable on this corpus. Remaining errors are mostly wording and QA phrasing, not missing source files in retrieval.
+
+#### Final evaluation — 100 QA
+
+After you generate 100 questions and run `benchmarks/run_local_rag_eval.py`, the latest figures land in `benchmarks/reports/aggregate.png` and `benchmarks/reports/outcomes.png`. The outcomes chart shows pass and fail counts per metric type, not per-question bars. This section will be filled with the 100-QA metrics and analysis once that run completes.
 
 Reproduce or refresh the figures:
 
 ```powershell
+python benchmarks\generate_qa_dataset.py
 python benchmarks\run_local_rag_eval.py
 ```
 

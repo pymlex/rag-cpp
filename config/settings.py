@@ -44,3 +44,6 @@ INDEX_SUBDIR = "rag_index"
 HNSW_FILE = "hnsw.bin"
 META_DB = "chunks.sqlite"
 BM25_FILE = "bm25_corpus.json"
+
+BENCHMARK_QA_COUNT = 100
+BENCHMARK_QA_BATCH_SIZE = 20
